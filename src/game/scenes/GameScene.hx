@@ -1,6 +1,7 @@
 package game.scenes;
 
 import core.Game;
+import core.Types.IntVec2;
 import core.gameobjects.GameObject;
 import core.gameobjects.SImage;
 import core.scene.Scene;
@@ -197,7 +198,7 @@ class GameScene extends Scene {
             var itemX = cItem.x + (i % 3);
             var itemY = cItem.y + Math.floor(i / 3);
 
-            if (getItem(itemX, itemY) != None) {
+            if (getItem(itemX, itemY) != null && getItem(itemX, itemY) != None) {
                 trace('brickdown');
                 cItem.y = startY;
                 stopItem();
@@ -213,12 +214,53 @@ class GameScene extends Scene {
         }
     }
 
+    // we've hit something. time to do the fun stuff
     function stopItem () {
         tilesLoop((type, x, y) -> {
             if (type != None) {
                 setItem(x, y, type);
             }
         });
+
+        // do matches
+        var match = false;
+        final consecutiveItems:Array<IntVec2> = [];
+        var matchItem = null;
+        for (y in 0...boardHeight) {
+            consecutiveItems.resize(0);
+            matchItem = null;
+
+            for (x in 0...boardWidth) {
+                if (matchItem == null && getItem(x, y) != None) {
+                    matchItem = getItem(x, y);
+                }
+
+                if (getItem(x, y) == matchItem) {
+                    consecutiveItems.push(new IntVec2(x, y));
+                    trace(consecutiveItems.length);
+                } else if (consecutiveItems.length >= 3) {
+                    trace('do something', matchItem, consecutiveItems);
+                    match = true;
+                    doMatch(consecutiveItems);
+                    break;
+                } else if (getItem(x, y) != None) {
+                    consecutiveItems.resize(0);
+                    consecutiveItems.push(new IntVec2(x, y));
+                    matchItem = getItem(x, y);
+                }
+            }
+
+            if (match) {
+                break;
+            }
+
+            if (consecutiveItems.length >= 3) {
+                trace('do somtheng edeg');
+                doMatch(consecutiveItems);
+                break;
+            }
+        }
+
         makeCItem();
     }
 
@@ -231,6 +273,13 @@ class GameScene extends Scene {
         cItem.tiles[5] = basicItems[randomInt(basicItems.length)];
 
         drawTiles.cItem = cItem;
+    }
+
+    function doMatch (items:Array<IntVec2>) {
+        trace(items);
+        for (item in items) {
+            setItem(item.x, item.y, None);
+        }
     }
 
     function checkCollisions () {}
@@ -248,7 +297,7 @@ class GameScene extends Scene {
         board[y * boardWidth + x] = item;
     }
 
-    function getItem (x:Int, y:Int):BlockType {
+    function getItem (x:Int, y:Int):Null<BlockType> {
         return board[y * boardWidth + x];
     }
 }
