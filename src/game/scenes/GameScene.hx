@@ -85,7 +85,7 @@ class GameScene extends Scene {
         super.create();
         camera.bgColor = 0xff1b2632;
 
-        board = [for (_ in 0...140) None];
+        board = [for (_ in 0...(boardWidth * boardHeight)) None];
 
         entities.push(new SImage(16, 16, Assets.images.board_bg));
         entities.push(drawTiles = new DrawTiles(board));
@@ -96,12 +96,12 @@ class GameScene extends Scene {
         if (Game.keys.justPressed(KeyCode.Left)) {
             // camera.bgColor = 0xffffff00;
             // cItem.x--;
-            tryMove(-1, 0);
+            tryMoveLR(-1);
         }
         if (Game.keys.justPressed(KeyCode.Right)) {
             // camera.bgColor = 0xffffffff;
             // cItem.x++;
-            tryMove(1, 0);
+            tryMoveLR(1);
         }
         if (Game.keys.justPressed(KeyCode.Up)) {
             // camera.bgColor = 0xff00ffff;
@@ -110,7 +110,7 @@ class GameScene extends Scene {
         if (Game.keys.justPressed(KeyCode.Down)) {
             dropTime = 0.0;
         }
-        dropSpeed = Game.keys.pressed(KeyCode.Down) ? 0.25 : 1.0;
+        dropSpeed = Game.keys.pressed(KeyCode.Down) ? 0.15 : 1.0;
         if (Game.keys.justReleased(KeyCode.Down)) {
             dropTime = 1.0;
         }
@@ -118,7 +118,7 @@ class GameScene extends Scene {
         dropTime -= delta;
         if (dropTime < 0) {
             dropTime += dropSpeed;
-            tryMove(0, 1);
+            tryMoveDown();
             checkCollisions();
         }
 
@@ -129,12 +129,11 @@ class GameScene extends Scene {
         }
     }
 
-    function tryMove (moveX:Int, moveY:Int) {
+    function tryMoveLR (moveX:Int) {
         final startX = cItem.x;
         final startY = cItem.y;
 
         cItem.x += moveX;
-        cItem.y += moveY;
 
         for (i in 0...cItem.tiles.length) {
             if (cItem.tiles[i] == None) continue;
@@ -152,6 +151,34 @@ class GameScene extends Scene {
             if (itemX >= boardWidth) {
                 cItem.x = startX;
                 trace('wall');
+                break;
+            }
+
+            if (getItem(itemX, itemY) != None) {
+                trace('brick');
+                cItem.x = startX;
+                break;
+            }
+        }
+    }
+
+    function tryMoveDown () {
+        final startX = cItem.x;
+        final startY = cItem.y;
+
+        cItem.y++;
+
+        for (i in 0...cItem.tiles.length) {
+            if (cItem.tiles[i] == None) continue;
+
+            // WARN: this assumes 3x3 cItems
+            var itemX = cItem.x + (i % 3);
+            var itemY = cItem.y + Math.floor(i / 3);
+
+            if (getItem(itemX, itemY) != None) {
+                trace('brickdown');
+                cItem.y = startY;
+                stopItem();
                 break;
             }
 
