@@ -5,6 +5,7 @@ import core.gameobjects.GameObject;
 import core.gameobjects.SImage;
 import core.scene.Scene;
 import core.system.Camera;
+import core.util.Util;
 import kha.Assets;
 import kha.graphics2.Graphics;
 import kha.input.KeyCode;
@@ -18,8 +19,23 @@ final tileSize = 16;
 
 enum BlockType {
     Weight;
+    Pizza;
+    Outside;
+    Love;
+    Bomb;
     None;
 }
+
+final indexes:Map<BlockType, Int> = [
+    Weight => 0,
+    Pizza => 1,
+    Outside => 2,
+    Love => 3,
+    Bomb => 4,
+    None => -1
+];
+
+final basicItems = [Weight, Pizza, Outside];
 
 typedef Board = Array<BlockType>;
 
@@ -37,24 +53,30 @@ class DrawTiles extends GameObject {
 
     override function render (g2:Graphics, cam:Camera) {
         for (i in 0...tiles.length) {
-            if (tiles[i] != None) {
-                g2.drawImage(
+            final tile = tiles[i];
+            if (tile != None) {
+                g2.drawSubImage(
                     Assets.images.tiles,
                     x + (i % boardWidth) * tileSize,
-                    y + Math.floor(i / boardWidth) * tileSize
+                    y + Math.floor(i / boardWidth) * tileSize,
+                    indexes.get(tile) * 16, 0,
+                    16, 16
                 );
             }
         }
 
         for (i in 0...cItem.tiles.length) {
-            if (cItem.tiles[i] != None) {
+            final tile = cItem.tiles[i];
+            if (tile != None) {
                 // WARN: this assumes 3x3 cItems
                 var itemX = cItem.x + (i % 3);
                 var itemY = cItem.y + Math.floor(i / 3);
-                g2.drawImage(
+                g2.drawSubImage(
                     Assets.images.tiles,
                     x + (itemX % boardWidth) * tileSize,
-                    y + itemY * tileSize
+                    y + itemY * tileSize,
+                    indexes.get(tile) * 16, 0,
+                    16, 16
                 );
             }
         }
@@ -204,9 +226,9 @@ class GameScene extends Scene {
         cItem = { tiles: [for (_ in 0...9) None], x: 3, y: 0 };
 
         // TEMP:
-        cItem.tiles[3] = Weight;
-        cItem.tiles[4] = Weight;
-        cItem.tiles[5] = Weight;
+        cItem.tiles[3] = basicItems[randomInt(basicItems.length)];
+        cItem.tiles[4] = basicItems[randomInt(basicItems.length)];
+        cItem.tiles[5] = basicItems[randomInt(basicItems.length)];
 
         drawTiles.cItem = cItem;
     }
