@@ -247,6 +247,50 @@ class GameScene extends Scene {
                     consecutiveItems.resize(0);
                     consecutiveItems.push(new IntVec2(x, y));
                     matchItem = getItem(x, y);
+                } else {
+                    consecutiveItems.resize(0);
+                    matchItem = null;
+                }
+            }
+
+            if (match) {
+                break;
+            }
+
+            if (consecutiveItems.length >= 3) {
+                doMatch(consecutiveItems);
+                break;
+            }
+        }
+
+        // do matches
+        var match = false;
+        final consecutiveItems:Array<IntVec2> = [];
+        var matchItem = null;
+        for (x in 0...boardWidth) {
+            consecutiveItems.resize(0);
+            matchItem = null;
+
+            for (y in 0...boardHeight) {
+                if (matchItem == null && getItem(x, y) != None) {
+                    matchItem = getItem(x, y);
+                }
+
+                if (getItem(x, y) == matchItem) {
+                    consecutiveItems.push(new IntVec2(x, y));
+                    trace(consecutiveItems.length);
+                } else if (consecutiveItems.length >= 3) {
+                    trace('do something', matchItem, consecutiveItems);
+                    match = true;
+                    doMatch(consecutiveItems);
+                    break;
+                } else if (getItem(x, y) != None) {
+                    consecutiveItems.resize(0);
+                    consecutiveItems.push(new IntVec2(x, y));
+                    matchItem = getItem(x, y);
+                } else {
+                    consecutiveItems.resize(0);
+                    matchItem = null;
                 }
             }
 
