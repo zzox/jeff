@@ -1,12 +1,10 @@
 package game.scenes;
 
 import core.Game;
-import core.Types;
 import core.gameobjects.GameObject;
 import core.gameobjects.SImage;
 import core.scene.Scene;
 import core.system.Camera;
-import core.util.Util;
 import game.board.Board;
 import kha.Assets;
 import kha.graphics2.Graphics;
@@ -31,10 +29,10 @@ class GameScene extends Scene {
     var drawTiles:DrawTiles;
     var cItem:CItem;
 
-    var dropSpeed:Float = 1.0;
-    var dropTime:Float = 1.0;
+    var dropSpeed:Int = 60;
+    var dropTime:Int = 60;
 
-    var animTime:Float = 0.1;
+    var animTime:Int = 10;
 
     override function create () {
         super.create();
@@ -61,23 +59,23 @@ class GameScene extends Scene {
             }
 
             if (Game.keys.justPressed(KeyCode.Down)) {
-                dropTime = 0.0;
+                dropTime = 1;
             }
-            dropSpeed = Game.keys.pressed(KeyCode.Down) ? 0.15 : 1.0;
+            dropSpeed = Game.keys.pressed(KeyCode.Down) ? 10 : 60;
             if (Game.keys.justReleased(KeyCode.Down)) {
-                dropTime = 1.0;
+                dropTime = 60;
             }
 
-            dropTime -= delta;
-            if (dropTime < 0) {
+            dropTime--;
+            if (dropTime == 0) {
                 dropTime += dropSpeed;
                 board.tryMoveDown();
             }
         } else {
-            animTime -= delta;
-            if (animTime < 0) {
+            animTime--;
+            if (animTime == 0) {
                 board.animate();
-                animTime += 0.1;
+                animTime += 5;
             }
         }
 
