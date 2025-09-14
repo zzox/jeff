@@ -27,7 +27,13 @@ typedef CItem = {
     var y:Int;
 }
 
+enum BoardState {
+    Play;
+    Drop;
+}
+
 class Board {
+    public var state:BoardState = Play;
     public var grid:Grid;
     public var cItem:CItem;
     public var islands:Array<Array<IntVec2>> = [];
@@ -185,7 +191,7 @@ class Board {
 
     // we've hit something. time to do the fun stuff
     function stopItem () {
-        tilesLoop((type, x, y) -> {
+        forEachCItem((type, x, y) -> {
             if (type != None) {
                 setItem(x, y, type);
             }
@@ -235,7 +241,6 @@ class Board {
 
         // do matches (y axis)
         if (!match) {
-            var match = false;
             final consecutiveItems:Array<IntVec2> = [];
             var matchItem = null;
             for (x in 0...boardWidth) {
@@ -270,6 +275,7 @@ class Board {
 
                 if (consecutiveItems.length >= 3) {
                     doMatch(consecutiveItems);
+                    match = true;
                     trace('match edge');
                     break;
                 }
@@ -281,13 +287,8 @@ class Board {
         makeCItem();
     }
 
-    // TODO: move into utils
-    function arrayContains (arr:Array<IntVec2>, x:Int, y:Int) {
-        for (i in 0...arr.length) {
-            if (arr[i].x == x && arr[i].y == y) return true;
-        }
-
-        return false;
+    function arrayContains (arr:Array<Bool>, x:Int, y:Int) {
+        return arr[y * boardWidth + x];
     }
 
     // get the 4 closest neighbors if they are real items
@@ -303,26 +304,23 @@ class Board {
         return items;
     }
 
+    var groundItems:Array<Bool> = [for (_ in 0...(boardWidth * boardHeight)) false];
     function makeIslands () {
         // find all that are on ground, group those
-        // iterate through all items, find ones that aren't grouped
-        // when adding to islands, remove from the board
-
-        final groundItems = [];
-
+        for (i in 0...groundItems.length) groundItems[i] = false;
         var toCheck = [];
 
         for (x in 0...boardWidth) {
             final item = getItem(x, boardHeight - 1);
 
             if (item != None && !arrayContains(groundItems, x, boardHeight - 1)) {
-                groundItems.push(new IntVec2(x, boardHeight - 1));
+                groundItems[(boardHeight - 1) * boardWidth + x] = true;
                 toCheck = toCheck.concat(getNeighbors(x, boardHeight - 1));
 
                 while (toCheck.length > 0) {
                     final check = toCheck.pop();
                     if (!arrayContains(groundItems, check.x, check.y)) {
-                        groundItems.push(check);
+                        groundItems[check.y * boardWidth + check.x] = true;
                         toCheck = toCheck.concat(getNeighbors(check.x, check.y));
                     }
                 }
@@ -330,6 +328,17 @@ class Board {
         }
 
         trace(groundItems);
+
+        final notOnGround = [];
+        for (i in 0...grid.length) {
+            if (getItem(i % boardWidth, Math.floor(i / boardWidth)) != None && !groundItems[i]) {
+                trace(i % boardWidth, Math.floor(i / boardWidth));
+                setItem(i % boardWidth, Math.floor(i / boardWidth), None);
+            }
+        }
+
+        // iterate through all items, find ones that aren't grouped
+        // when adding to islands, remove from the board
 
         // drop each like we drop by y
         // ALL need to move downwards each step, we don't exit early
@@ -353,7 +362,7 @@ class Board {
         }
     }
 
-    inline function tilesLoop (cb) {
+    inline function forEachCItem (cb) {
         for (i in 0...cItem.tiles.length) {
             final itemX = cItem.x + (i % itemSize);
             final itemY = cItem.y + Math.floor(i / itemSize);
