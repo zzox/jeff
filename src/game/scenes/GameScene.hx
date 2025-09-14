@@ -1,7 +1,7 @@
 package game.scenes;
 
 import core.Game;
-import core.Types.IntVec2;
+import core.Types;
 import core.gameobjects.GameObject;
 import core.gameobjects.SImage;
 import core.scene.Scene;
@@ -71,8 +71,8 @@ class DrawTiles extends GameObject {
         for (i in 0...cItem.tiles.length) {
             final tile = cItem.tiles[i];
             if (tile != None) {
-                var itemX = cItem.x + (i % itemSize);
-                var itemY = cItem.y + Math.floor(i / itemSize);
+                final itemX = cItem.x + (i % itemSize);
+                final itemY = cItem.y + Math.floor(i / itemSize);
                 g2.drawSubImage(
                     Assets.images.tiles,
                     x + (itemX % boardWidth) * tileSize,
@@ -85,13 +85,8 @@ class DrawTiles extends GameObject {
     }
 }
 
-enum ItemDir {
-    Flat;
-    Up;
-}
-
 typedef CItem = {
-    var tiles:Board; // 9 items
+    var tiles:Board; // 4 or 9 items
     var x:Int;
     var y:Int;
 };
@@ -129,6 +124,7 @@ class GameScene extends Scene {
         }
         if (Game.keys.justPressed(KeyCode.Up)) {
             // camera.bgColor = 0xff00ffff;
+            tryRotate();
         }
 
         if (Game.keys.justPressed(KeyCode.Down)) {
@@ -162,9 +158,8 @@ class GameScene extends Scene {
         for (i in 0...cItem.tiles.length) {
             if (cItem.tiles[i] == None) continue;
 
-            // WARN: this assumes 3x3 cItems
-            var itemX = cItem.x + (i % 2);
-            var itemY = cItem.y + Math.floor(i / 2);
+            final itemX = cItem.x + (i % itemSize);
+            final itemY = cItem.y + Math.floor(i / itemSize);
 
             if (itemX < 0) {
                 cItem.x = startX;
@@ -195,8 +190,8 @@ class GameScene extends Scene {
         for (i in 0...cItem.tiles.length) {
             if (cItem.tiles[i] == None) continue;
 
-            var itemX = cItem.x + (i % itemSize);
-            var itemY = cItem.y + Math.floor(i / itemSize);
+            final itemX = cItem.x + (i % itemSize);
+            final itemY = cItem.y + Math.floor(i / itemSize);
 
             if (getItem(itemX, itemY) != null && getItem(itemX, itemY) != None) {
                 trace('brickdown');
@@ -211,6 +206,86 @@ class GameScene extends Scene {
                 stopItem();
                 break;
             }
+        }
+    }
+
+    inline function rotate () {
+        cItem.tiles = [cItem.tiles[2],cItem.tiles[0],cItem.tiles[3],cItem.tiles[1]];
+    }
+
+    inline function unRotate () {
+        cItem.tiles = [cItem.tiles[1],cItem.tiles[3],cItem.tiles[0],cItem.tiles[2]];
+    }
+
+    function tryRotate () {
+        final startX = cItem.x;
+        final startY = cItem.y;
+        rotate();
+
+        var wallMoved = false;
+        var hitGround = false;
+        for (i in 0...cItem.tiles.length) {
+            if (cItem.tiles[i] == None) continue;
+
+            final itemX = cItem.x + (i % itemSize);
+            final itemY = cItem.y + Math.floor(i / itemSize);
+
+            if (itemX < 0) {
+                cItem.x++;
+                wallMoved = true;
+                break;
+            }
+
+            if (itemX >= boardWidth) {
+                cItem.x--;
+                wallMoved = true;
+                break;
+            }
+
+            if (itemY >= boardHeight) {
+                cItem.y--;
+                hitGround = true;
+                break;
+            }
+        }
+
+        var brickMoved = false;
+        for (i in 0...cItem.tiles.length) {
+            if (cItem.tiles[i] == None) continue;
+
+            final itemX = cItem.x + (i % itemSize);
+            final itemY = cItem.y + Math.floor(i / itemSize);
+
+            if (getItem(itemX, itemY) == null) {
+                throw 'shouldnt be here';
+            }
+
+            if (getItem(itemX, itemY) != None) {
+                cItem.y--;
+                brickMoved = true;
+                break;
+            }
+        }
+
+        if (hitGround && !brickMoved) {
+            stopItem();
+            return;
+        }
+
+        if (hitGround && brickMoved) {
+            cItem.x = startX;
+            cItem.y = startY;
+            unRotate();
+            trace('unrotating 1');
+            return;
+        }
+
+        if (!hitGround && brickMoved) {
+            cItem.x = startX;
+            cItem.y = startY;
+            unRotate();
+            trace('unrotating 2');
+            return;
         }
     }
 
@@ -237,9 +312,8 @@ class GameScene extends Scene {
 
                 if (getItem(x, y) == matchItem) {
                     consecutiveItems.push(new IntVec2(x, y));
-                    trace(consecutiveItems.length);
                 } else if (consecutiveItems.length >= 3) {
-                    trace('do something', matchItem, consecutiveItems);
+                    trace('match');
                     match = true;
                     doMatch(consecutiveItems);
                     break;
@@ -258,6 +332,7 @@ class GameScene extends Scene {
             }
 
             if (consecutiveItems.length >= 3) {
+                trace('match edge');
                 doMatch(consecutiveItems);
                 break;
             }
@@ -280,7 +355,7 @@ class GameScene extends Scene {
                     consecutiveItems.push(new IntVec2(x, y));
                     trace(consecutiveItems.length);
                 } else if (consecutiveItems.length >= 3) {
-                    trace('do something', matchItem, consecutiveItems);
+                    trace('match');
                     match = true;
                     doMatch(consecutiveItems);
                     break;
@@ -300,6 +375,7 @@ class GameScene extends Scene {
 
             if (consecutiveItems.length >= 3) {
                 doMatch(consecutiveItems);
+                trace('match edge');
                 break;
             }
         }
@@ -308,7 +384,7 @@ class GameScene extends Scene {
     }
 
     function makeCItem () {
-        cItem = { tiles: [for (_ in 0...9) None], x: 3, y: 0 };
+        cItem = { tiles: [for (_ in 0...(itemSize * itemSize)) None], x: 3, y: 0 };
 
         cItem.tiles[2] = basicItems[randomInt(basicItems.length)];
         cItem.tiles[3] = basicItems[randomInt(basicItems.length)];
@@ -327,8 +403,8 @@ class GameScene extends Scene {
 
     inline function tilesLoop (cb) {
         for (i in 0...cItem.tiles.length) {
-            var itemX = cItem.x + (i % itemSize);
-            var itemY = cItem.y + Math.floor(i / itemSize);
+            final itemX = cItem.x + (i % itemSize);
+            final itemY = cItem.y + Math.floor(i / itemSize);
             cb(cItem.tiles[i], itemX, itemY);
         }
     }
