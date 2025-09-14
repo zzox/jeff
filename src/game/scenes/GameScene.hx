@@ -34,6 +34,8 @@ class GameScene extends Scene {
     var dropSpeed:Float = 1.0;
     var dropTime:Float = 1.0;
 
+    var animTime:Float = 0.1;
+
     override function create () {
         super.create();
         camera.bgColor = 0xff1b2632;
@@ -41,34 +43,42 @@ class GameScene extends Scene {
         board = new Board(onNewCItem);
 
         entities.push(new SImage(16, 16, Assets.images.board_bg));
-        entities.push(drawTiles = new DrawTiles(board.grid));
+        entities.push(drawTiles = new DrawTiles(board.grid, board.island));
 
         board.start();
     }
 
     override function update (delta:Float) {
-        if (Game.keys.justPressed(KeyCode.Left)) {
-            board.tryMoveLR(-1);
-        }
-        if (Game.keys.justPressed(KeyCode.Right)) {
-            board.tryMoveLR(1);
-        }
-        if (Game.keys.justPressed(KeyCode.Up)) {
-            board.tryRotate();
-        }
+        if (board.state == Play) {
+            if (Game.keys.justPressed(KeyCode.Left)) {
+                board.tryMoveLR(-1);
+            }
+            if (Game.keys.justPressed(KeyCode.Right)) {
+                board.tryMoveLR(1);
+            }
+            if (Game.keys.justPressed(KeyCode.Up)) {
+                board.tryRotate();
+            }
 
-        if (Game.keys.justPressed(KeyCode.Down)) {
-            dropTime = 0.0;
-        }
-        dropSpeed = Game.keys.pressed(KeyCode.Down) ? 0.15 : 1.0;
-        if (Game.keys.justReleased(KeyCode.Down)) {
-            dropTime = 1.0;
-        }
+            if (Game.keys.justPressed(KeyCode.Down)) {
+                dropTime = 0.0;
+            }
+            dropSpeed = Game.keys.pressed(KeyCode.Down) ? 0.15 : 1.0;
+            if (Game.keys.justReleased(KeyCode.Down)) {
+                dropTime = 1.0;
+            }
 
-        dropTime -= delta;
-        if (dropTime < 0) {
-            dropTime += dropSpeed;
-            board.tryMoveDown();
+            dropTime -= delta;
+            if (dropTime < 0) {
+                dropTime += dropSpeed;
+                board.tryMoveDown();
+            }
+        } else {
+            animTime -= delta;
+            if (animTime < 0) {
+                board.animate();
+                animTime += 0.1;
+            }
         }
 
         super.update(delta);
@@ -85,10 +95,12 @@ class GameScene extends Scene {
 
 class DrawTiles extends GameObject {
     var tiles:Grid;
+    var island:Array<IslandItem>;
     public var cItem:CItem;
 
-    public function new (tilesPtr:Grid) {
+    public function new (tilesPtr:Grid, islandPtr:Array<IslandItem>) {
         this.tiles = tilesPtr;
+        this.island = islandPtr;
         this.x = spawnX;
         this.y = spawnY;
     }
@@ -107,6 +119,16 @@ class DrawTiles extends GameObject {
                     16, 16
                 );
             }
+        }
+
+        for (i in 0...island.length) {
+            g2.drawSubImage(
+                Assets.images.tiles,
+                x + island[i].x * tileSize,
+                y + island[i].y * tileSize,
+                indexes.get(island[i].item) * 16, 0,
+                16, 16
+            );
         }
 
         if (cItem != null) {

@@ -29,14 +29,20 @@ typedef CItem = {
 
 enum BoardState {
     Play;
-    Drop;
+    Animate;
+}
+
+typedef IslandItem = {
+    var item:BlockType;
+    var x:Int;
+    var y:Int;
 }
 
 class Board {
     public var state:BoardState = Play;
     public var grid:Grid;
     public var cItem:CItem;
-    public var islands:Array<Array<IntVec2>> = [];
+    public var island:Array<IslandItem> = [];
 
     var handleCItem:(cItem:CItem) -> Void;
 
@@ -47,6 +53,24 @@ class Board {
 
     public function start () {
         makeCItem();
+    }
+
+    public function animate () {
+        if (island.length == 0) throw 'No Island';
+
+        var hit = false;
+        for (i in 0...island.length) {
+            // WARN: == not >=
+            if (island[i].y + 1 == boardHeight || getItem(island[i].x, island[i].y + 1) != None) {
+                hit = true;
+            }
+        }
+
+        if (!hit) {
+            for (i in 0...island.length) {
+                island[i].y++;
+            }
+        }
     }
 
     public function tryMoveLR (moveX:Int) {
@@ -284,12 +308,25 @@ class Board {
 
         if (match) makeIslands();
 
-        makeCItem();
+        if (island.length > 0) {
+            state = Animate;
+            removeCItem();
+        } else {
+            makeCItem();
+        }
     }
 
-    function arrayContains (arr:Array<Bool>, x:Int, y:Int) {
+    function bArrayContains (arr:Array<Bool>, x:Int, y:Int):Bool {
         return arr[y * boardWidth + x];
     }
+
+    // function arrayContains (arr:Array<IntVec2>, x:Int, y:Int):Bool {
+    //     for (i in 0...arr.length) {
+    //         if (arr[i].x == x && arr[i].y == y) return true;
+    //     }
+
+    //     return false;
+    // }
 
     // get the 4 closest neighbors if they are real items
     final poss = [new IntVec2(-1, 0), new IntVec2(1, 0), new IntVec2(0, -1), new IntVec2(0, 1)];
@@ -308,18 +345,17 @@ class Board {
     function makeIslands () {
         // find all that are on ground, group those
         for (i in 0...groundItems.length) groundItems[i] = false;
-        var toCheck = [];
 
         for (x in 0...boardWidth) {
             final item = getItem(x, boardHeight - 1);
 
-            if (item != None && !arrayContains(groundItems, x, boardHeight - 1)) {
+            if (item != None && !bArrayContains(groundItems, x, boardHeight - 1)) {
                 groundItems[(boardHeight - 1) * boardWidth + x] = true;
-                toCheck = toCheck.concat(getNeighbors(x, boardHeight - 1));
+                var toCheck = getNeighbors(x, boardHeight - 1);
 
                 while (toCheck.length > 0) {
                     final check = toCheck.pop();
-                    if (!arrayContains(groundItems, check.x, check.y)) {
+                    if (!bArrayContains(groundItems, check.x, check.y)) {
                         groundItems[check.y * boardWidth + check.x] = true;
                         toCheck = toCheck.concat(getNeighbors(check.x, check.y));
                     }
@@ -329,16 +365,17 @@ class Board {
 
         trace(groundItems);
 
-        final notOnGround = [];
+        // iterate through all items, find ones that aren't grouped
+        // when adding to island, remove from the board
+        island.resize(0);
+
         for (i in 0...grid.length) {
-            if (getItem(i % boardWidth, Math.floor(i / boardWidth)) != None && !groundItems[i]) {
-                trace(i % boardWidth, Math.floor(i / boardWidth));
+            final item = getItem(i % boardWidth, Math.floor(i / boardWidth));
+            if (item != None && !groundItems[i]) {
+                island.push({ item: item, x: i % boardWidth,y: Math.floor(i / boardWidth) });
                 setItem(i % boardWidth, Math.floor(i / boardWidth), None);
             }
         }
-
-        // iterate through all items, find ones that aren't grouped
-        // when adding to islands, remove from the board
 
         // drop each like we drop by y
         // ALL need to move downwards each step, we don't exit early
@@ -353,6 +390,10 @@ class Board {
         cItem.tiles[3] = basicItems[randomInt(basicItems.length)];
 
         handleCItem(cItem);
+    }
+
+    function removeCItem () {
+        handleCItem({ tiles: [], x: 3, y: 0 });
     }
 
     function doMatch (items:Array<IntVec2>) {
