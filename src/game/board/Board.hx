@@ -30,6 +30,7 @@ typedef CItem = {
 class Board {
     public var grid:Grid;
     public var cItem:CItem;
+    public var islands:Array<Array<IntVec2>> = [];
 
     var handleCItem:(cItem:CItem) -> Void;
 
@@ -39,7 +40,7 @@ class Board {
     }
 
     public function start () {
-makeCItem();
+        makeCItem();
     }
 
     public function tryMoveLR (moveX:Int) {
@@ -191,6 +192,7 @@ makeCItem();
         });
 
         // do matches
+        // WARN: logic is mirrored on other access, below
         var match = false;
         final consecutiveItems:Array<IntVec2> = [];
         var matchItem = null;
@@ -231,49 +233,108 @@ makeCItem();
             }
         }
 
-        // do matches
-        var match = false;
-        final consecutiveItems:Array<IntVec2> = [];
-        var matchItem = null;
-        for (x in 0...boardWidth) {
-            consecutiveItems.resize(0);
-            matchItem = null;
+        // do matches (y axis)
+        if (!match) {
+            var match = false;
+            final consecutiveItems:Array<IntVec2> = [];
+            var matchItem = null;
+            for (x in 0...boardWidth) {
+                consecutiveItems.resize(0);
+                matchItem = null;
 
-            for (y in 0...boardHeight) {
-                if (matchItem == null && getItem(x, y) != None) {
-                    matchItem = getItem(x, y);
+                for (y in 0...boardHeight) {
+                    if (matchItem == null && getItem(x, y) != None) {
+                        matchItem = getItem(x, y);
+                    }
+
+                    if (getItem(x, y) == matchItem) {
+                        consecutiveItems.push(new IntVec2(x, y));
+                    } else if (consecutiveItems.length >= 3) {
+                        trace('match');
+                        match = true;
+                        doMatch(consecutiveItems);
+                        break;
+                    } else if (getItem(x, y) != None) {
+                        consecutiveItems.resize(0);
+                        consecutiveItems.push(new IntVec2(x, y));
+                        matchItem = getItem(x, y);
+                    } else {
+                        consecutiveItems.resize(0);
+                        matchItem = null;
+                    }
                 }
 
-                if (getItem(x, y) == matchItem) {
-                    consecutiveItems.push(new IntVec2(x, y));
-                    trace(consecutiveItems.length);
-                } else if (consecutiveItems.length >= 3) {
-                    trace('match');
-                    match = true;
-                    doMatch(consecutiveItems);
+                if (match) {
                     break;
-                } else if (getItem(x, y) != None) {
-                    consecutiveItems.resize(0);
-                    consecutiveItems.push(new IntVec2(x, y));
-                    matchItem = getItem(x, y);
-                } else {
-                    consecutiveItems.resize(0);
-                    matchItem = null;
                 }
-            }
 
-            if (match) {
-                break;
-            }
-
-            if (consecutiveItems.length >= 3) {
-                doMatch(consecutiveItems);
-                trace('match edge');
-                break;
+                if (consecutiveItems.length >= 3) {
+                    doMatch(consecutiveItems);
+                    trace('match edge');
+                    break;
+                }
             }
         }
 
+        if (match) makeIslands();
+
         makeCItem();
+    }
+
+    // TODO: move into utils
+    function arrayContains (arr:Array<IntVec2>, x:Int, y:Int) {
+        for (i in 0...arr.length) {
+            if (arr[i].x == x && arr[i].y == y) return true;
+        }
+
+        return false;
+    }
+
+    // get the 4 closest neighbors if they are real items
+    final poss = [new IntVec2(-1, 0), new IntVec2(1, 0), new IntVec2(0, -1), new IntVec2(0, 1)];
+    function getNeighbors (x:Int, y:Int):Array<IntVec2> {
+        final items = [];
+        for (i in 0...poss.length) {
+            final item = getItem(x + poss[i].x, y + poss[i].y);
+            if (item != null && item != None) {
+                items.push(new IntVec2(x + poss[i].x, y + poss[i].y));
+            }
+        }
+        return items;
+    }
+
+    function makeIslands () {
+        // find all that are on ground, group those
+        // iterate through all items, find ones that aren't grouped
+        // when adding to islands, remove from the board
+
+        final groundItems = [];
+
+        var toCheck = [];
+
+        for (x in 0...boardWidth) {
+            final item = getItem(x, boardHeight - 1);
+
+            if (item != None && !arrayContains(groundItems, x, boardHeight - 1)) {
+                groundItems.push(new IntVec2(x, boardHeight - 1));
+                toCheck = toCheck.concat(getNeighbors(x, boardHeight - 1));
+
+                while (toCheck.length > 0) {
+                    final check = toCheck.pop();
+                    if (!arrayContains(groundItems, check.x, check.y)) {
+                        groundItems.push(check);
+                        toCheck = toCheck.concat(getNeighbors(check.x, check.y));
+                    }
+                }
+            }
+        }
+
+        trace(groundItems);
+
+        // drop each like we drop by y
+        // ALL need to move downwards each step, we don't exit early
+
+        // when one island hits, we erase all!
     }
 
     function makeCItem () {
