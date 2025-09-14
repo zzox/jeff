@@ -18,6 +18,8 @@ final spawnX = 32;
 final spawnY = 0;
 final tileSize = 16;
 
+final itemSize = 2;
+
 enum BlockType {
     Weight;
     Pizza;
@@ -69,9 +71,8 @@ class DrawTiles extends GameObject {
         for (i in 0...cItem.tiles.length) {
             final tile = cItem.tiles[i];
             if (tile != None) {
-                // WARN: this assumes 3x3 cItems
-                var itemX = cItem.x + (i % 3);
-                var itemY = cItem.y + Math.floor(i / 3);
+                var itemX = cItem.x + (i % itemSize);
+                var itemY = cItem.y + Math.floor(i / itemSize);
                 g2.drawSubImage(
                     Assets.images.tiles,
                     x + (itemX % boardWidth) * tileSize,
@@ -162,8 +163,8 @@ class GameScene extends Scene {
             if (cItem.tiles[i] == None) continue;
 
             // WARN: this assumes 3x3 cItems
-            var itemX = cItem.x + (i % 3);
-            var itemY = cItem.y + Math.floor(i / 3);
+            var itemX = cItem.x + (i % 2);
+            var itemY = cItem.y + Math.floor(i / 2);
 
             if (itemX < 0) {
                 cItem.x = startX;
@@ -194,9 +195,8 @@ class GameScene extends Scene {
         for (i in 0...cItem.tiles.length) {
             if (cItem.tiles[i] == None) continue;
 
-            // WARN: this assumes 3x3 cItems
-            var itemX = cItem.x + (i % 3);
-            var itemY = cItem.y + Math.floor(i / 3);
+            var itemX = cItem.x + (i % itemSize);
+            var itemY = cItem.y + Math.floor(i / itemSize);
 
             if (getItem(itemX, itemY) != null && getItem(itemX, itemY) != None) {
                 trace('brickdown');
@@ -255,7 +255,6 @@ class GameScene extends Scene {
             }
 
             if (consecutiveItems.length >= 3) {
-                trace('do somtheng edeg');
                 doMatch(consecutiveItems);
                 break;
             }
@@ -267,10 +266,8 @@ class GameScene extends Scene {
     function makeCItem () {
         cItem = { tiles: [for (_ in 0...9) None], x: 3, y: 0 };
 
-        // TEMP:
+        cItem.tiles[2] = basicItems[randomInt(basicItems.length)];
         cItem.tiles[3] = basicItems[randomInt(basicItems.length)];
-        cItem.tiles[4] = basicItems[randomInt(basicItems.length)];
-        cItem.tiles[5] = basicItems[randomInt(basicItems.length)];
 
         drawTiles.cItem = cItem;
     }
@@ -286,9 +283,8 @@ class GameScene extends Scene {
 
     inline function tilesLoop (cb) {
         for (i in 0...cItem.tiles.length) {
-            // WARN: this assumes 3x3 cItems
-            var itemX = cItem.x + (i % 3);
-            var itemY = cItem.y + Math.floor(i / 3);
+            var itemX = cItem.x + (i % itemSize);
+            var itemY = cItem.y + Math.floor(i / itemSize);
             cb(cItem.tiles[i], itemX, itemY);
         }
     }
