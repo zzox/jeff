@@ -38,15 +38,29 @@ typedef IslandItem = {
     var y:Int;
 }
 
+enum BoardEventType {
+    Match;
+    Island;
+}
+
+typedef BoardEvent = {
+    var type:BoardEventType;
+    var items:Array<IntVec2>;
+    var blockType:BlockType;
+}
+
 class Board {
     public var state:BoardState = Play;
     public var grid:Grid;
     public var cItem:CItem;
     public var island:Array<IslandItem> = [];
 
-    public function new () {
+    var onBoardEvent:BoardEvent -> Void;
+
+    public function new (onBoardEvent:BoardEvent -> Void) {
         grid = [for (_ in 0...(boardWidth * boardHeight)) None];
         cItem = { tiles: [], x: 4, y: 0 };
+        this.onBoardEvent = onBoardEvent;
     }
 
     public function start () {
@@ -251,7 +265,7 @@ class Board {
                 } else if (consecutiveItems.length >= 3) {
                     trace('match');
                     match = true;
-                    doMatch(consecutiveItems);
+                    doMatch(consecutiveItems, matchItem);
                     break;
                 } else if (getItem(x, y) != None) {
                     consecutiveItems.resize(0);
@@ -269,7 +283,7 @@ class Board {
 
             if (consecutiveItems.length >= 3) {
                 trace('match edge');
-                doMatch(consecutiveItems);
+                doMatch(consecutiveItems, matchItem);
                 break;
             }
         }
@@ -292,7 +306,7 @@ class Board {
                     } else if (consecutiveItems.length >= 3) {
                         trace('match');
                         match = true;
-                        doMatch(consecutiveItems);
+                        doMatch(consecutiveItems, matchItem);
                         break;
                     } else if (getItem(x, y) != None) {
                         consecutiveItems.resize(0);
@@ -309,7 +323,7 @@ class Board {
                 }
 
                 if (consecutiveItems.length >= 3) {
-                    doMatch(consecutiveItems);
+                    doMatch(consecutiveItems, matchItem);
                     match = true;
                     trace('match edge');
                     break;
@@ -407,11 +421,13 @@ class Board {
         cItem.tiles.resize(0);
     }
 
-    function doMatch (items:Array<IntVec2>) {
+    function doMatch (items:Array<IntVec2>, type:BlockType) {
         trace(items);
         for (item in items) {
             setItem(item.x, item.y, None);
         }
+
+        onBoardEvent({ type: Match, items: items, blockType: type });
     }
 
     inline function forEachCItem (cb) {

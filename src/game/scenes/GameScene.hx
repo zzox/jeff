@@ -1,12 +1,14 @@
 package game.scenes;
 
 import core.Game;
+import core.Types.IntVec2;
 import core.gameobjects.BitmapText;
 import core.gameobjects.GameObject;
 import core.gameobjects.SImage;
 import core.scene.Scene;
 import core.system.Camera;
 import game.board.Board;
+import game.ui.UiText;
 import kha.Assets;
 import kha.graphics2.Graphics;
 import kha.input.KeyCode;
@@ -33,20 +35,35 @@ class GameScene extends Scene {
 
     var drawTiles:DrawTiles;
 
+    var delaying:Bool = false;
+    var delayFrames:Int = 0;
+    var eventText:BitmapText;
+
     override function create () {
         super.create();
+
+        new UiText();
+
         camera.bgColor = 0xff1b2632;
 
-        board = new Board();
+        board = new Board(handleBoardEvent);
 
         entities.push(new SImage(16, 16, Assets.images.board_bg));
         entities.push(drawTiles = new DrawTiles(board));
 
         board.start();
+
+        entities.push(eventText = makeBitmapText(0, 0, ''));
     }
 
     override function update (delta:Float) {
-        if (board.state == Play) {
+        if (delaying) {
+            delayFrames--;
+            if (delayFrames == 0) {
+                drawTiles.matchItems.resize(0);
+                delaying = false;
+            }
+        } else if (board.state == Play) {
             if (Game.keys.justPressed(KeyCode.Left)) {
                 board.tryMoveLR(-1);
             }
@@ -89,10 +106,28 @@ class GameScene extends Scene {
             game.changeScene(new GameScene());
         }
     }
+
+    function handleBoardEvent (event:BoardEvent) {
+        if (event.type == Match) {
+            trace(event.items);
+            eventText.setText('match');
+            drawTiles.matchItems = event.items;
+            drawTiles.matchType = event.blockType;
+            delay(10);
+        } else {
+        }
+    }
+
+    function delay (time:Int) {
+        delayFrames = time;
+        delaying = true;
+    }
 }
 
 class DrawTiles extends GameObject {
     var board:Board;
+    public var matchType:Null<BlockType>;
+    public var matchItems:Array<IntVec2> = [];
 
     public function new (boardPtr:Board) {
         this.board = boardPtr;
@@ -144,6 +179,16 @@ class DrawTiles extends GameObject {
                     );
                 }
             }
+        }
+
+        for (i in 0...matchItems.length) {
+            g2.drawSubImage(
+                Assets.images.tiles,
+                x + matchItems[i].x * tileSize,
+                y + matchItems[i].y * tileSize,
+                indexes.get(matchType) * 16, 16,
+                16, 16
+            );
         }
     }
 }
