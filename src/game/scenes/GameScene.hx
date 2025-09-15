@@ -13,8 +13,8 @@ import kha.Assets;
 import kha.graphics2.Graphics;
 import kha.input.KeyCode;
 
-final spawnX = 32;
-final spawnY = 0;
+final spawnX = 8;
+final spawnY = 8;
 final tileSize = 16;
 
 final indexes:Map<BlockType, Int> = [
@@ -48,7 +48,7 @@ class GameScene extends Scene {
 
         board = new Board(handleBoardEvent);
 
-        entities.push(new SImage(16, 16, Assets.images.board_bg));
+        entities.push(new SImage(-8, 8, Assets.images.board_bg));
         entities.push(drawTiles = new DrawTiles(board));
 
         board.start();
@@ -131,7 +131,6 @@ class DrawTiles extends GameObject {
 
     public function new (boardPtr:Board) {
         this.board = boardPtr;
-        // this.island = islandPtr;
         this.x = spawnX;
         this.y = spawnY;
     }
@@ -168,16 +167,13 @@ class DrawTiles extends GameObject {
                 final itemX = board.cItem.x + (i % itemSize);
                 final itemY = board.cItem.y + Math.floor(i / itemSize);
 
-                // don't draw above line
-                if (itemY >= 0) {
-                    g2.drawSubImage(
-                        Assets.images.tiles,
-                        x + (itemX % boardWidth) * tileSize,
-                        y + itemY * tileSize,
-                        indexes.get(tile) * 16, 0,
-                        16, 16
-                    );
-                }
+                g2.drawSubImage(
+                    Assets.images.tiles,
+                    x + (itemX % boardWidth) * tileSize,
+                    y + itemY * tileSize,
+                    indexes.get(tile) * 16, 0,
+                    16, 16
+                );
             }
         }
 

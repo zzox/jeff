@@ -3,8 +3,8 @@ package game.board;
 import core.Types;
 import core.util.Util;
 
-final boardWidth = 10;
-final boardHeight = 15;
+final boardWidth = 7;
+final boardHeight = 10;
 
 final itemSize = 2;
 
@@ -59,7 +59,7 @@ class Board {
 
     public function new (onBoardEvent:BoardEvent -> Void) {
         grid = [for (_ in 0...(boardWidth * boardHeight)) None];
-        cItem = { tiles: [], x: 4, y: 0 };
+        cItem = { tiles: [], x: 2, y: 0 };
         this.onBoardEvent = onBoardEvent;
     }
 
@@ -409,12 +409,12 @@ class Board {
     }
 
     function makeCItem () {
-        cItem.x = 4;
+        cItem.x = 2;
         cItem.y = 0;
         cItem.tiles = [for (_ in 0...(itemSize * itemSize)) None];
 
-        cItem.tiles[2] = basicItems[randomInt(basicItems.length)];
-        cItem.tiles[3] = basicItems[randomInt(basicItems.length)];
+        cItem.tiles[0] = basicItems[randomInt(basicItems.length)];
+        cItem.tiles[1] = basicItems[randomInt(basicItems.length)];
     }
 
     function removeCItem () {

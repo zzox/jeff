@@ -13,10 +13,10 @@ class Main {
         setFullWindowCanvas();
         new Game(
             'jeff',
-            1450, 820,
+            1300, 800,
             PixelPerfect,
             new GameScene(),
-            480, 270
+            320, 180
         );
 
         // new Game(
