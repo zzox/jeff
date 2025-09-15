@@ -79,6 +79,11 @@ class GameScene extends Scene {
             }
         }
 
+        if (dropTime < 0 || animTime < 0) {
+            trace(dropTime, animTime);
+            throw 'Bad times';
+        }
+
         super.update(delta);
 
         if (Game.keys.justPressed(KeyCode.R)) {

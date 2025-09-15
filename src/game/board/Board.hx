@@ -57,6 +57,7 @@ class Board {
 
     public function animate () {
         if (island.length == 0) throw 'No Island';
+        if (state == Play) throw 'Bad State';
 
         var hit = false;
         for (i in 0...island.length) {
@@ -66,14 +67,24 @@ class Board {
             }
         }
 
-        if (!hit) {
+        if (hit) {
             for (i in 0...island.length) {
-                island[i].y++;
+                setItem(island[i].x, island[i].y, island[i].item);
             }
+            island.resize(0);
+            state = Play;
+            makeCItem();
+            return;
+        }
+
+        for (i in 0...island.length) {
+            island[i].y++;
         }
     }
 
     public function tryMoveLR (moveX:Int) {
+        if (state == Animate) throw 'should be Animating';
+
         final startX = cItem.x;
         final startY = cItem.y;
 
@@ -106,6 +117,7 @@ class Board {
     }
 
     public function tryMoveDown () {
+        if (state == Animate) throw 'should be Animating';
         final startX = cItem.x;
         final startY = cItem.y;
 
@@ -134,6 +146,7 @@ class Board {
     }
 
     public function tryRotate () {
+        if (state == Animate) throw 'should be Animating';
         final startX = cItem.x;
         final startY = cItem.y;
         rotate();
@@ -363,11 +376,11 @@ class Board {
             }
         }
 
-        trace(groundItems);
+        // trace(groundItems);
 
         // iterate through all items, find ones that aren't grouped
         // when adding to island, remove from the board
-        island.resize(0);
+        // island.resize(0);
 
         for (i in 0...grid.length) {
             final item = getItem(i % boardWidth, Math.floor(i / boardWidth));
@@ -384,7 +397,7 @@ class Board {
     }
 
     function makeCItem () {
-        cItem = { tiles: [for (_ in 0...(itemSize * itemSize)) None], x: 3, y: 0 };
+        cItem = { tiles: [for (_ in 0...(itemSize * itemSize)) None], x: 4, y: 0 };
 
         cItem.tiles[2] = basicItems[randomInt(basicItems.length)];
         cItem.tiles[3] = basicItems[randomInt(basicItems.length)];
@@ -393,7 +406,8 @@ class Board {
     }
 
     function removeCItem () {
-        handleCItem({ tiles: [], x: 3, y: 0 });
+        cItem.tiles.resize(0);
+        handleCItem(cItem);
     }
 
     function doMatch (items:Array<IntVec2>) {
