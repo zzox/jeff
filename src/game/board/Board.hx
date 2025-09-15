@@ -32,7 +32,7 @@ enum BoardState {
     Animate;
 }
 
-typedef IslandItem = {
+typedef BlockItem = {
     var item:BlockType;
     var x:Int;
     var y:Int;
@@ -45,15 +45,14 @@ enum BoardEventType {
 
 typedef BoardEvent = {
     var type:BoardEventType;
-    var items:Array<IntVec2>;
-    var blockType:BlockType;
+    var ?items:Array<Array<BlockItem>>;
 }
 
 class Board {
     public var state:BoardState = Play;
     public var grid:Grid;
     public var cItem:CItem;
-    public var island:Array<IslandItem> = [];
+    public var island:Array<BlockItem> = [];
 
     var onBoardEvent:BoardEvent -> Void;
 
@@ -238,7 +237,7 @@ class Board {
         cItem.tiles = [cItem.tiles[1],cItem.tiles[3],cItem.tiles[0],cItem.tiles[2]];
     }
 
-    // we've hit something. time to do the fun stuff
+    // we've hit something. time to kick off the fun stuff
     function stopItem () {
         forEachCItem((type, x, y) -> {
             if (type != None) {
@@ -246,98 +245,86 @@ class Board {
             }
         });
 
+        checkMatches();
+    }
+
+    inline function makeMatch (items:Array<IntVec2>, item:BlockType) {
+        return [for (i in 0...items.length) { x: items[i].x, y: items[i].y, item: item }];
+    }
+
+    function checkMatches () {
         // do matches
         // WARN: logic is mirrored on other axis, below
-        var match = false;
-        final consecutiveItems:Array<IntVec2> = [];
-        var matchItem = null;
+        final matches:Array<Array<BlockItem>> = [];
+
         for (y in 0...boardHeight) {
-            consecutiveItems.resize(0);
-            matchItem = null;
+            final consecutiveItems:Array<IntVec2> = [];
+            var matchItem = null;
 
             for (x in 0...boardWidth) {
-                if (matchItem == null && getItem(x, y) != None) {
-                    matchItem = getItem(x, y);
-                }
+                final item = getItem(x, y);
 
-                if (getItem(x, y) == matchItem) {
+                if (item != None && item == matchItem) {
                     consecutiveItems.push(new IntVec2(x, y));
-                } else if (consecutiveItems.length >= 3) {
-                    // trace('match');
-                    doMatch(consecutiveItems, matchItem);
-                    match = true;
-                    break;
-                } else if (getItem(x, y) != None) {
-                    consecutiveItems.resize(0);
-                    consecutiveItems.push(new IntVec2(x, y));
-                    matchItem = getItem(x, y);
                 } else {
-                    consecutiveItems.resize(0);
-                    matchItem = null;
-                }
-            }
+                    if (consecutiveItems.length >= 3) {
+                        matches.push(makeMatch(consecutiveItems, matchItem));
+                    }
 
-            if (match) {
-                break;
+                    matchItem = item;
+                    consecutiveItems.resize(0);
+                    consecutiveItems.push(new IntVec2(x, y));
+                }
             }
 
             if (consecutiveItems.length >= 3) {
-                // trace('match edge');
-                doMatch(consecutiveItems, matchItem);
-                match = true;
+                matches.push(makeMatch(consecutiveItems, matchItem));
                 break;
             }
         }
 
-        // do matches (y axis)
-        if (!match) {
+        for (x in 0...boardWidth) {
             final consecutiveItems:Array<IntVec2> = [];
             var matchItem = null;
-            for (x in 0...boardWidth) {
-                consecutiveItems.resize(0);
-                matchItem = null;
 
-                for (y in 0...boardHeight) {
-                    if (matchItem == null && getItem(x, y) != None) {
-                        matchItem = getItem(x, y);
+            for (y in 0...boardHeight) {
+                final item = getItem(x, y);
+
+                if (item != None && item == matchItem) {
+                    consecutiveItems.push(new IntVec2(x, y));
+                } else {
+                    if (consecutiveItems.length >= 3) {
+                        matches.push(makeMatch(consecutiveItems, matchItem));
                     }
 
-                    if (getItem(x, y) == matchItem) {
-                        consecutiveItems.push(new IntVec2(x, y));
-                    } else if (consecutiveItems.length >= 3) {
-                        // trace('match');
-                        doMatch(consecutiveItems, matchItem);
-                        match = true;
-                        break;
-                    } else if (getItem(x, y) != None) {
-                        consecutiveItems.resize(0);
-                        consecutiveItems.push(new IntVec2(x, y));
-                        matchItem = getItem(x, y);
-                    } else {
-                        consecutiveItems.resize(0);
-                        matchItem = null;
-                    }
+                    matchItem = item;
+                    consecutiveItems.resize(0);
+                    consecutiveItems.push(new IntVec2(x, y));
                 }
+            }
 
-                if (match) {
-                    break;
-                }
-
-                if (consecutiveItems.length >= 3) {
-                    doMatch(consecutiveItems, matchItem);
-                    match = true;
-                    // trace('match edge');
-                    break;
-                }
+            if (consecutiveItems.length >= 3) {
+                matches.push(makeMatch(consecutiveItems, matchItem));
+                break;
             }
         }
 
-        if (match) makeIslands();
+        for (m in 0...matches.length) {
+            for (i in 0...matches[m].length) {
+                setItem(matches[m][i].x, matches[m][i].y, None);
+            }
+        }
 
-        if (island.length > 0) {
-            state = Animate;
+        if (matches.length > 0) {
+            onBoardEvent({ type: Match, items: matches });
+            makeIslands();
+            if (island.length > 0) {
+                state = Animate;
+            }
             removeCItem();
         } else {
+            // WARN: this handles the "removal" for now
+            // this will auto-add the next cItem instead of the scene calling `start`
             makeCItem();
         }
     }
@@ -410,14 +397,13 @@ class Board {
         cItem.tiles.resize(0);
     }
 
-    function doMatch (items:Array<IntVec2>, type:BlockType) {
-        // trace(items);
-        for (item in items) {
-            setItem(item.x, item.y, None);
-        }
+    // function doMatch (items:Array<IntVec2>, type:BlockType) {
+    //     for (item in items) {
+    //         setItem(item.x, item.y, None);
+    //     }
 
-        onBoardEvent({ type: Match, items: items, blockType: type });
-    }
+    //     onBoardEvent({ type: Match, items: items, blockType: type });
+    // }
 
     inline function forEachCItem (cb) {
         for (i in 0...cItem.tiles.length) {

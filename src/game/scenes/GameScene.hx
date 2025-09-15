@@ -62,8 +62,13 @@ class GameScene extends Scene {
             if (delayFrames == 0) {
                 drawTiles.matchItems.resize(0);
                 delaying = false;
+                board.start();
             }
-        } else if (board.state == Play) {
+        }
+
+        // ew, consider using curlies for this
+        if (!delaying)
+        if (board.state == Play) {
             if (Game.keys.justPressed(KeyCode.Left)) {
                 board.tryMoveLR(-1);
             }
@@ -102,6 +107,7 @@ class GameScene extends Scene {
 
         super.update(delta);
 
+        // TODO: delete this
         if (Game.keys.justPressed(KeyCode.R)) {
             game.changeScene(new GameScene());
         }
@@ -112,7 +118,6 @@ class GameScene extends Scene {
             trace(event.items);
             eventText.setText('match');
             drawTiles.matchItems = event.items;
-            drawTiles.matchType = event.blockType;
             delay(10);
         } else {
         }
@@ -126,8 +131,7 @@ class GameScene extends Scene {
 
 class DrawTiles extends GameObject {
     var board:Board;
-    public var matchType:Null<BlockType>;
-    public var matchItems:Array<IntVec2> = [];
+    public var matchItems:Array<Array<BlockItem>> = [];
 
     public function new (boardPtr:Board) {
         this.board = boardPtr;
@@ -178,13 +182,15 @@ class DrawTiles extends GameObject {
         }
 
         for (i in 0...matchItems.length) {
-            g2.drawSubImage(
-                Assets.images.tiles,
-                x + matchItems[i].x * tileSize,
-                y + matchItems[i].y * tileSize,
-                indexes.get(matchType) * 16, 16,
-                16, 16
-            );
+            for (j in 0...matchItems[i].length) {
+                g2.drawSubImage(
+                    Assets.images.tiles,
+                    x + matchItems[i][j].x * tileSize,
+                    y + matchItems[i][j].y * tileSize,
+                    indexes.get(matchItems[i][j].item) * 16, 16,
+                    16, 16
+                );
+            }
         }
     }
 }
