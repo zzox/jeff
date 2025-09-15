@@ -110,18 +110,18 @@ class Board {
 
             if (itemX < 0) {
                 cItem.x = startX;
-                trace('wall');
+                // trace('wall');
                 break;
             }
 
             if (itemX >= boardWidth) {
                 cItem.x = startX;
-                trace('wall');
+                // trace('wall');
                 break;
             }
 
             if (getItem(itemX, itemY) != None) {
-                trace('brick');
+                // trace('brick');
                 cItem.x = startX;
                 break;
             }
@@ -142,14 +142,14 @@ class Board {
             final itemY = cItem.y + Math.floor(i / itemSize);
 
             if (getItem(itemX, itemY) != null && getItem(itemX, itemY) != None) {
-                trace('brickdown');
+                // trace('brickdown');
                 cItem.y = startY;
                 stopItem();
                 break;
             }
 
             if (itemY >= boardHeight) {
-                trace('ground');
+                // trace('ground');
                 cItem.y = startY;
                 stopItem();
                 break;
@@ -217,7 +217,7 @@ class Board {
             cItem.x = startX;
             cItem.y = startY;
             unRotate();
-            trace('unrotating 1');
+            // trace('unrotating 1');
             return;
         }
 
@@ -225,7 +225,7 @@ class Board {
             cItem.x = startX;
             cItem.y = startY;
             unRotate();
-            trace('unrotating 2');
+            // trace('unrotating 2');
             return;
         }
     }
@@ -247,7 +247,7 @@ class Board {
         });
 
         // do matches
-        // WARN: logic is mirrored on other access, below
+        // WARN: logic is mirrored on other axis, below
         var match = false;
         final consecutiveItems:Array<IntVec2> = [];
         var matchItem = null;
@@ -263,9 +263,9 @@ class Board {
                 if (getItem(x, y) == matchItem) {
                     consecutiveItems.push(new IntVec2(x, y));
                 } else if (consecutiveItems.length >= 3) {
-                    trace('match');
-                    match = true;
+                    // trace('match');
                     doMatch(consecutiveItems, matchItem);
+                    match = true;
                     break;
                 } else if (getItem(x, y) != None) {
                     consecutiveItems.resize(0);
@@ -282,8 +282,9 @@ class Board {
             }
 
             if (consecutiveItems.length >= 3) {
-                trace('match edge');
+                // trace('match edge');
                 doMatch(consecutiveItems, matchItem);
+                match = true;
                 break;
             }
         }
@@ -304,9 +305,9 @@ class Board {
                     if (getItem(x, y) == matchItem) {
                         consecutiveItems.push(new IntVec2(x, y));
                     } else if (consecutiveItems.length >= 3) {
-                        trace('match');
-                        match = true;
+                        // trace('match');
                         doMatch(consecutiveItems, matchItem);
+                        match = true;
                         break;
                     } else if (getItem(x, y) != None) {
                         consecutiveItems.resize(0);
@@ -325,7 +326,7 @@ class Board {
                 if (consecutiveItems.length >= 3) {
                     doMatch(consecutiveItems, matchItem);
                     match = true;
-                    trace('match edge');
+                    // trace('match edge');
                     break;
                 }
             }
@@ -340,18 +341,6 @@ class Board {
             makeCItem();
         }
     }
-
-    function bArrayContains (arr:Array<Bool>, x:Int, y:Int):Bool {
-        return arr[y * boardWidth + x];
-    }
-
-    // function arrayContains (arr:Array<IntVec2>, x:Int, y:Int):Bool {
-    //     for (i in 0...arr.length) {
-    //         if (arr[i].x == x && arr[i].y == y) return true;
-    //     }
-
-    //     return false;
-    // }
 
     // get the 4 closest neighbors if they are real items
     final poss = [new IntVec2(-1, 0), new IntVec2(1, 0), new IntVec2(0, -1), new IntVec2(0, 1)];
@@ -422,7 +411,7 @@ class Board {
     }
 
     function doMatch (items:Array<IntVec2>, type:BlockType) {
-        trace(items);
+        // trace(items);
         for (item in items) {
             setItem(item.x, item.y, None);
         }
@@ -437,6 +426,18 @@ class Board {
             cb(cItem.tiles[i], itemX, itemY);
         }
     }
+
+    function bArrayContains (arr:Array<Bool>, x:Int, y:Int):Bool {
+        return arr[y * boardWidth + x];
+    }
+
+    // function arrayContains (arr:Array<IntVec2>, x:Int, y:Int):Bool {
+    //     for (i in 0...arr.length) {
+    //         if (arr[i].x == x && arr[i].y == y) return true;
+    //     }
+
+    //     return false;
+    // }
 
     function setItem (x:Int, y:Int, item:BlockType) {
         grid[y * boardWidth + x] = item;
