@@ -1,6 +1,7 @@
 package game.scenes;
 
 import core.Game;
+import core.gameobjects.BitmapText;
 import core.gameobjects.GameObject;
 import core.gameobjects.SImage;
 import core.scene.Scene;
@@ -26,22 +27,20 @@ final indexes:Map<BlockType, Int> = [
 class GameScene extends Scene {
     var board:Board;
 
-    var drawTiles:DrawTiles;
-    var cItem:CItem;
-
     var dropSpeed:Int = 60;
     var dropTime:Int = 60;
-
     var animTime:Int = 10;
+
+    var drawTiles:DrawTiles;
 
     override function create () {
         super.create();
         camera.bgColor = 0xff1b2632;
 
-        board = new Board(onNewCItem);
+        board = new Board();
 
         entities.push(new SImage(16, 16, Assets.images.board_bg));
-        entities.push(drawTiles = new DrawTiles(board.grid, board.island));
+        entities.push(drawTiles = new DrawTiles(board));
 
         board.start();
     }
@@ -90,20 +89,14 @@ class GameScene extends Scene {
             game.changeScene(new GameScene());
         }
     }
-
-    function onNewCItem (cItem:CItem) {
-        drawTiles.cItem = cItem;
-    }
 }
 
 class DrawTiles extends GameObject {
-    var tiles:Grid;
-    var island:Array<IslandItem>;
-    public var cItem:CItem;
+    var board:Board;
 
-    public function new (tilesPtr:Grid, islandPtr:Array<IslandItem>) {
-        this.tiles = tilesPtr;
-        this.island = islandPtr;
+    public function new (boardPtr:Board) {
+        this.board = boardPtr;
+        // this.island = islandPtr;
         this.x = spawnX;
         this.y = spawnY;
     }
@@ -111,8 +104,8 @@ class DrawTiles extends GameObject {
     override function update (delta:Float) {}
 
     override function render (g2:Graphics, cam:Camera) {
-        for (i in 0...tiles.length) {
-            final tile = tiles[i];
+        for (i in 0...board.grid.length) {
+            final tile = board.grid[i];
             if (tile != None) {
                 g2.drawSubImage(
                     Assets.images.tiles,
@@ -124,22 +117,24 @@ class DrawTiles extends GameObject {
             }
         }
 
-        for (i in 0...island.length) {
+        for (i in 0...board.island.length) {
             g2.drawSubImage(
                 Assets.images.tiles,
-                x + island[i].x * tileSize,
-                y + island[i].y * tileSize,
-                indexes.get(island[i].item) * 16, 0,
+                x + board.island[i].x * tileSize,
+                y + board.island[i].y * tileSize,
+                indexes.get(board.island[i].item) * 16, 0,
                 16, 16
             );
         }
 
-        if (cItem != null) {
-            for (i in 0...cItem.tiles.length) {
-                final tile = cItem.tiles[i];
-                if (tile != None) {
-                    final itemX = cItem.x + (i % itemSize);
-                    final itemY = cItem.y + Math.floor(i / itemSize);
+        for (i in 0...board.cItem.tiles.length) {
+            final tile = board.cItem.tiles[i];
+            if (tile != None) {
+                final itemX = board.cItem.x + (i % itemSize);
+                final itemY = board.cItem.y + Math.floor(i / itemSize);
+
+                // don't draw above line
+                if (itemY >= 0) {
                     g2.drawSubImage(
                         Assets.images.tiles,
                         x + (itemX % boardWidth) * tileSize,

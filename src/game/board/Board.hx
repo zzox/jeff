@@ -44,11 +44,9 @@ class Board {
     public var cItem:CItem;
     public var island:Array<IslandItem> = [];
 
-    var handleCItem:(cItem:CItem) -> Void;
-
-    public function new (onCItem:(cItem:CItem) -> Void) {
+    public function new () {
         grid = [for (_ in 0...(boardWidth * boardHeight)) None];
-        handleCItem = onCItem;
+        cItem = { tiles: [], x: 4, y: 0 };
     }
 
     public function start () {
@@ -397,17 +395,16 @@ class Board {
     }
 
     function makeCItem () {
-        cItem = { tiles: [for (_ in 0...(itemSize * itemSize)) None], x: 4, y: 0 };
+        cItem.x = 4;
+        cItem.y = 0;
+        cItem.tiles = [for (_ in 0...(itemSize * itemSize)) None];
 
         cItem.tiles[2] = basicItems[randomInt(basicItems.length)];
         cItem.tiles[3] = basicItems[randomInt(basicItems.length)];
-
-        handleCItem(cItem);
     }
 
     function removeCItem () {
         cItem.tiles.resize(0);
-        handleCItem(cItem);
     }
 
     function doMatch (items:Array<IntVec2>) {
