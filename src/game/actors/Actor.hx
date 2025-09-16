@@ -60,7 +60,7 @@ class Actor extends Sprite {
         super.update(delta);
 
         if (type == Jeff) {
-            x += 0.5;   
+            x += 0.5;
             anim.play('jeff-walk');
         } else if (target != null) {
             final vel = velocityFromAngle(

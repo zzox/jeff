@@ -55,6 +55,9 @@ class World {
         final goodGuys = actors.filter(a -> { goodTypes.contains(a.type); });
         final badGuys = actors.filter(a -> { badTypes.contains(a.type); });
 
+        // clear dead targets
+        // don't update stuff if attacking
+
         // find teammates targets
         for (g in goodGuys) {
             if (g.type == Jeff) continue;

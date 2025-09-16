@@ -350,21 +350,10 @@ class Board {
                 while (toCheck.length > 0) {
                     final check = toCheck.pop();
                     if (!bArrayContains(groundItems, check.x, check.y)) {
-                        trace(check.x, check.y);
                         groundItems[check.y * boardWidth + check.x] = true;
                         toCheck = toCheck.concat(getNeighbors(check.x, check.y));
                     }
                 }
-            }
-        }
-
-        for (x in 0...boardWidth) {
-            trace(getItem(x, boardHeight - 1));
-        }
-
-        for (i in 0...groundItems.length) {
-            if (groundItems[i]) {
-                trace('here');
             }
         }
 
@@ -377,8 +366,6 @@ class Board {
                 setItem(i % boardWidth, Math.floor(i / boardWidth), None);
             }
         }
-
-        trace(island.length);
 
         // drop each like we drop by y
         // ALL need to move downwards each step, we don't exit early
