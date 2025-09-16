@@ -90,6 +90,8 @@ class Board {
     }
 
     public function tryMoveLR (moveX:Int) {
+        if (island.length > 0) throw 'Need island first';
+
         final startX = cItem.x;
         final startY = cItem.y;
 
@@ -122,6 +124,8 @@ class Board {
     }
 
     public function tryMoveDown () {
+        if (island.length > 0) throw 'Need island first';
+
         final startX = cItem.x;
         final startY = cItem.y;
 
@@ -150,6 +154,8 @@ class Board {
     }
 
     public function tryRotate () {
+        if (island.length > 0) throw 'Need island first';
+
         final startX = cItem.x;
         final startY = cItem.y;
         rotate();
@@ -309,10 +315,6 @@ class Board {
 
         if (matches.length > 0) {
             onBoardEvent({ type: Match, items: matches });
-        // } else {
-        //     // WARN: this handles the "removal" for now
-        //     // this will auto-add the next cItem instead of the scene calling `start`
-        //     makeCItem();
         }
 
         makeIslands();
@@ -348,6 +350,7 @@ class Board {
                 while (toCheck.length > 0) {
                     final check = toCheck.pop();
                     if (!bArrayContains(groundItems, check.x, check.y)) {
+                        trace(check.x, check.y);
                         groundItems[check.y * boardWidth + check.x] = true;
                         toCheck = toCheck.concat(getNeighbors(check.x, check.y));
                     }
@@ -355,12 +358,18 @@ class Board {
             }
         }
 
-        // trace(groundItems);
+        for (x in 0...boardWidth) {
+            trace(getItem(x, boardHeight - 1));
+        }
+
+        for (i in 0...groundItems.length) {
+            if (groundItems[i]) {
+                trace('here');
+            }
+        }
 
         // iterate through all items, find ones that aren't grouped
         // when adding to island, remove from the board
-        // island.resize(0);
-
         for (i in 0...grid.length) {
             final item = getItem(i % boardWidth, Math.floor(i / boardWidth));
             if (item != None && !groundItems[i]) {
@@ -368,6 +377,8 @@ class Board {
                 setItem(i % boardWidth, Math.floor(i / boardWidth), None);
             }
         }
+
+        trace(island.length);
 
         // drop each like we drop by y
         // ALL need to move downwards each step, we don't exit early
@@ -423,10 +434,18 @@ class Board {
     // }
 
     function setItem (x:Int, y:Int, item:BlockType) {
+        if (x < 0 || x >= boardWidth || y < 0 || y >= boardHeight) {
+            // TEMP: throw is temporary, but still shouldnt be hit
+            throw 'Cant set item here';
+            return;
+        }
         grid[y * boardWidth + x] = item;
     }
 
     function getItem (x:Int, y:Int):Null<BlockType> {
+        if (x < 0 || x >= boardWidth || y < 0 || y >= boardHeight) {
+            return null;
+        }
         return grid[y * boardWidth + x];
     }
 }

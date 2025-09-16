@@ -43,11 +43,11 @@ class GameScene extends Scene {
 
         new UiText();
 
-        camera.bgColor = 0xff1b2632;
+        camera.bgColor = 0xff493c2b;
 
         board = new Board(handleBoardEvent);
 
-        entities.push(new SImage(-8, 8, Assets.images.board_bg));
+        entities.push(new SImage(0, 0, Assets.images.board_bg));
         entities.push(drawTiles = new DrawTiles(board));
 
         board.start();
