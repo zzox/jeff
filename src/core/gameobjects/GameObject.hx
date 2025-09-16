@@ -44,4 +44,9 @@ class GameObject {
         this.x = x;
         this.y = y;
     }
+
+    public function setScrollFactor (x:Float, y:Float) {
+        this.scrollFactorX = x;
+        this.scrollFactorY = y;
+    }
 }

@@ -1,11 +1,15 @@
 package game.scenes;
 
 import core.Game;
+import core.components.Family;
+import core.components.FrameAnim;
 import core.gameobjects.BitmapText;
 import core.gameobjects.GameObject;
 import core.gameobjects.SImage;
 import core.scene.Scene;
 import core.system.Camera;
+import game.actors.Actor;
+import game.actors.World;
 import game.board.Board;
 import game.ui.UiText;
 import kha.Assets;
@@ -36,6 +40,8 @@ class GameScene extends Scene {
     var drawTiles:DrawTiles;
     var eventText:BitmapText;
 
+    var world:World;
+
     var gameOver:Bool = false;
 
     override function create () {
@@ -46,13 +52,18 @@ class GameScene extends Scene {
         camera.bgColor = 0xff493c2b;
 
         board = new Board(handleBoardEvent);
+        world = new World();
 
-        entities.push(new SImage(0, 0, Assets.images.board_bg));
+        final bg = new SImage(0, 0, Assets.images.board_bg);
+        bg.setScrollFactor(0, 0);
+        entities.push(bg);
         entities.push(drawTiles = new DrawTiles(board));
 
         board.start();
 
         entities.push(eventText = makeBitmapText(0, 0, ''));
+
+        camera.startFollow(world.jeff, 60, 24);
     }
 
     override function update (delta:Float) {
@@ -105,12 +116,23 @@ class GameScene extends Scene {
             }
         }
 
+        world.update(delta);
         super.update(delta);
 
         // TODO: delete this
         if (Game.keys.justPressed(KeyCode.R)) {
             game.changeScene(new GameScene());
         }
+    }
+
+    override function render (g2:Graphics, clears:Bool) {
+        g2.begin(clears, camera.bgColor);
+        world.render(g2, camera);
+
+        // from parent
+        for (e in entities) if (e.visible) e.render(g2, camera);
+
+        g2.end();
     }
 
     function handleBoardEvent (event:BoardEvent) {

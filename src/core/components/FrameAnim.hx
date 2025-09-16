@@ -40,6 +40,11 @@ class FrameAnim extends Component {
     }
 
     override function update (delta:Float) {
+        // unnecessary null-check? compilation macro in future?
+        if (currentAnim == null) {
+            return;
+        }
+
         animTime++;
 
         final frameAnimTime = Math.floor(animTime / currentAnim.frameTime);
