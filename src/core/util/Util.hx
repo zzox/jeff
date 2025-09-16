@@ -1,5 +1,7 @@
 package core.util;
 
+import core.Types;
+
 function clamp (value:Float, min:Float, max:Float) {
     return Math.max(Math.min(value, max), min);
 }
@@ -10,4 +12,27 @@ function lerp (target:Float, current:Float, percent:Float):Float {
 
 function randomInt (ceil:Int) {
     return Math.floor(Math.random() * ceil);
+}
+
+function toRadians (value:Float):Float {
+    return value * (Math.PI / 180);
+}
+
+function toDegrees (value:Float):Float {
+    return value / (Math.PI / 180);
+}
+
+// from: https://github.com/HaxeFlixel/flixel/blob/dev/flixel/math/FlxVelocity.hx
+function velocityFromAngle (angle:Float, velocity:Float):Vec2 {
+    final a = toRadians(angle);
+    return new Vec2(Math.cos(a) * velocity, Math.sin(a) * velocity);
+}
+
+// from: https://stackoverflow.com/questions/2676719/calculating-the-angle-between-a-line-and-the-x-axis
+function angleFromPoints (p1x:Float, p1y:Float, p2x:Float, p2y:Float):Float {
+    return toDegrees(Math.atan2(p1y - p2y, p1x - p2x));
+}
+
+function distanceBetween (x1:Float, y1:Float, x2:Float, y2:Float) {
+    return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 }

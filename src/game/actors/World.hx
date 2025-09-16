@@ -1,14 +1,12 @@
 package game.actors;
 
-import core.Game;
 import core.components.Family;
 import core.components.FrameAnim;
 import core.system.Camera;
+import core.util.Util;
 import game.actors.Actor;
-import game.board.Board;
 import kha.Assets;
 import kha.graphics2.Graphics;
-import kha.input.KeyCode;
 
 class Anims extends Family<FrameAnim> {
     public function new () {
@@ -17,6 +15,8 @@ class Anims extends Family<FrameAnim> {
                 final frameAnim = new FrameAnim();
                 frameAnim.add('jeff-stand', [0]);
                 frameAnim.add('jeff-walk', [0, 1, 2, 0, 3, 4], 10);
+                frameAnim.add('diamond', [5, 6], 15);
+                frameAnim.add('diamond-move', [5, 6], 10);
                 frameAnim.active = false;
                 frameAnim;
             }];
@@ -37,11 +37,13 @@ class World {
 
     public function new () {
         animations = new Anims();
-        jeff = makeActor();
+        jeff = makeActor(0, 0, Jeff);
+
+        makeActor(120, 0, Diamond);
     }
 
-    function makeActor () {
-        final actor = new Actor();
+    function makeActor (x:Float, y:Float, type:ActorType) {
+        final actor = new Actor(x, y, type);
         final anim = animations.getNext();
         anim.active = true;
         actor.init(anim);
@@ -50,8 +52,47 @@ class World {
     }
 
     public function update (delta:Float) {
-        animations.update(delta);
+        final goodGuys = actors.filter(a -> { goodTypes.contains(a.type); });
+        final badGuys = actors.filter(a -> { badTypes.contains(a.type); });
+
+        // find teammates targets
+        for (g in goodGuys) {
+            if (g.type == Jeff) continue;
+
+            var dist = 100.0;
+            if (g.target != null) {
+                dist = distanceBetween(g.getMiddleX(), g.getMiddleY(), g.target.getMiddleX(), g.target.getMiddleY());
+            }
+
+            for (b in badGuys) {
+                final d = distanceBetween(g.getMiddleX(), g.getMiddleY(), b.getMiddleX(), b.getMiddleY());
+                if (d < dist) {
+                    g.target = b;
+                    dist = d;
+                }
+            }
+        }
+
+        // find enemies targets
+        for (b in badGuys) {
+            var dist = 100.0;
+            if (b.target != null) {
+                dist = distanceBetween(b.getMiddleX(), b.getMiddleY(), b.target.getMiddleX(), b.target.getMiddleY());
+            }
+
+            for (g in goodGuys) {
+                final d = distanceBetween(b.getMiddleX(), b.getMiddleY(), g.getMiddleX(), g.getMiddleY());
+                if (d < dist) {
+                    b.target = g;
+                    dist = d;
+                }
+            }
+        }
+
+        // if good guys don't have a target, find their point
+
         for (i in 0...actors.length) actors[i].update(delta);
+        animations.update(delta);
     }
 
     public function render (g2:Graphics, cam:Camera) {
@@ -63,7 +104,8 @@ class World {
 
         for (i in 0...actors.length) {
             final tileIndex = 9;
-            g2.color = 128 * 0x1000000 + 0xffffff;
+            g2.color = 64 * 0x1000000 + 0xffffff;
+
             final cols = Std.int(image.width / 32);
             g2.drawScaledSubImage(
                 image,
@@ -76,7 +118,6 @@ class World {
                 sizeX,// * (flipX ? -1 : 1),
                 sizeY// * (flipY ? -1 : 1)
             );
-    
         }
 
         g2.popTransformation();

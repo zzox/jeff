@@ -1,8 +1,6 @@
 package game.scenes;
 
 import core.Game;
-import core.components.Family;
-import core.components.FrameAnim;
 import core.gameobjects.BitmapText;
 import core.gameobjects.GameObject;
 import core.gameobjects.SImage;
