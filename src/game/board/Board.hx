@@ -49,7 +49,6 @@ typedef BoardEvent = {
 }
 
 class Board {
-    public var state:BoardState = Play;
     public var grid:Grid;
     public var cItem:CItem;
     public var island:Array<BlockItem> = [];
@@ -68,7 +67,6 @@ class Board {
 
     public function animate () {
         if (island.length == 0) throw 'No Island';
-        if (state == Play) throw 'Bad State';
 
         var hit = false;
         for (i in 0...island.length) {
@@ -83,8 +81,7 @@ class Board {
                 setItem(island[i].x, island[i].y, island[i].item);
             }
             island.resize(0);
-            state = Play;
-            makeCItem();
+            checkMatches();
             return;
         }
 
@@ -94,7 +91,6 @@ class Board {
     }
 
     public function tryMoveLR (moveX:Int) {
-        if (state == Animate) throw 'should be Animating';
 
         final startX = cItem.x;
         final startY = cItem.y;
@@ -128,7 +124,6 @@ class Board {
     }
 
     public function tryMoveDown () {
-        if (state == Animate) throw 'should be Animating';
         final startX = cItem.x;
         final startY = cItem.y;
 
@@ -157,7 +152,6 @@ class Board {
     }
 
     public function tryRotate () {
-        if (state == Animate) throw 'should be Animating';
         final startX = cItem.x;
         final startY = cItem.y;
         rotate();
@@ -318,15 +312,13 @@ class Board {
         if (matches.length > 0) {
             onBoardEvent({ type: Match, items: matches });
             makeIslands();
-            if (island.length > 0) {
-                state = Animate;
-            }
-            removeCItem();
-        } else {
-            // WARN: this handles the "removal" for now
-            // this will auto-add the next cItem instead of the scene calling `start`
-            makeCItem();
+        // } else {
+        //     // WARN: this handles the "removal" for now
+        //     // this will auto-add the next cItem instead of the scene calling `start`
+        //     makeCItem();
         }
+
+        removeCItem();
     }
 
     // get the 4 closest neighbors if they are real items

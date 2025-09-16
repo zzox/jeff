@@ -1,7 +1,6 @@
 package game.scenes;
 
 import core.Game;
-import core.Types.IntVec2;
 import core.gameobjects.BitmapText;
 import core.gameobjects.GameObject;
 import core.gameobjects.SImage;
@@ -31,12 +30,11 @@ class GameScene extends Scene {
 
     var dropSpeed:Int = 60;
     var dropTime:Int = 60;
-    var animTime:Int = 10;
+    var animTime:Int = 0;
+    var delayTime:Int = 0;
 
     var drawTiles:DrawTiles;
 
-    var delaying:Bool = false;
-    var delayFrames:Int = 0;
     var eventText:BitmapText;
 
     override function create () {
@@ -57,18 +55,28 @@ class GameScene extends Scene {
     }
 
     override function update (delta:Float) {
-        if (delaying) {
-            delayFrames--;
-            if (delayFrames == 0) {
-                drawTiles.matchItems.resize(0);
-                delaying = false;
-                board.start();
+        // if we're in a delay, count down
+        delayTime--;
+        if (delayTime == 0) {
+            drawTiles.matchItems.resize(0);
+            if (board.island.length > 0) {
+                animTime = 10;
             }
         }
 
-        // ew, consider using curlies for this
-        if (!delaying)
-        if (board.state == Play) {
+        animTime--;
+        if (animTime == 0) {
+            board.animate();
+            if (board.island.length > 0) {
+                animTime += 5;
+            }
+        }
+
+        if (delayTime <= 0 && animTime <= 0) {
+            if (board.cItem.tiles.length == 0) {
+                board.start();
+            }
+
             if (Game.keys.justPressed(KeyCode.Left)) {
                 board.tryMoveLR(-1);
             }
@@ -92,17 +100,6 @@ class GameScene extends Scene {
                 dropTime += dropSpeed;
                 board.tryMoveDown();
             }
-        } else {
-            animTime--;
-            if (animTime == 0) {
-                board.animate();
-                animTime += 5;
-            }
-        }
-
-        if (dropTime < 0 || animTime < 0) {
-            trace(dropTime, animTime);
-            throw 'Bad times';
         }
 
         super.update(delta);
@@ -120,12 +117,12 @@ class GameScene extends Scene {
             drawTiles.matchItems = event.items;
             delay(10);
         } else {
+            eventText.setText('hit');
         }
     }
 
     function delay (time:Int) {
-        delayFrames = time;
-        delaying = true;
+        delayTime = time;
     }
 }
 
