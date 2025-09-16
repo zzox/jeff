@@ -34,8 +34,9 @@ class GameScene extends Scene {
     var delayTime:Int = 0;
 
     var drawTiles:DrawTiles;
-
     var eventText:BitmapText;
+
+    var gameOver:Bool = false;
 
     override function create () {
         super.create();
@@ -77,28 +78,30 @@ class GameScene extends Scene {
                 board.start();
             }
 
-            if (Game.keys.justPressed(KeyCode.Left)) {
-                board.tryMoveLR(-1);
-            }
-            if (Game.keys.justPressed(KeyCode.Right)) {
-                board.tryMoveLR(1);
-            }
-            if (Game.keys.justPressed(KeyCode.Up)) {
-                board.tryRotate();
-            }
+            if (!gameOver) {
+                if (Game.keys.justPressed(KeyCode.Left)) {
+                    board.tryMoveLR(-1);
+                }
+                if (Game.keys.justPressed(KeyCode.Right)) {
+                    board.tryMoveLR(1);
+                }
+                if (Game.keys.justPressed(KeyCode.Up)) {
+                    board.tryRotate();
+                }
 
-            if (Game.keys.justPressed(KeyCode.Down)) {
-                dropTime = 1;
-            }
-            dropSpeed = Game.keys.pressed(KeyCode.Down) ? 10 : 60;
-            if (Game.keys.justReleased(KeyCode.Down)) {
-                dropTime = 60;
-            }
+                if (Game.keys.justPressed(KeyCode.Down)) {
+                    dropTime = 1;
+                }
+                dropSpeed = Game.keys.pressed(KeyCode.Down) ? 10 : 60;
+                if (Game.keys.justReleased(KeyCode.Down)) {
+                    dropTime = 60;
+                }
 
-            dropTime--;
-            if (dropTime == 0) {
-                dropTime += dropSpeed;
-                board.tryMoveDown();
+                dropTime--;
+                if (dropTime == 0) {
+                    dropTime += dropSpeed;
+                    board.tryMoveDown();
+                }
             }
         }
 
@@ -112,12 +115,14 @@ class GameScene extends Scene {
 
     function handleBoardEvent (event:BoardEvent) {
         if (event.type == Match) {
-            trace(event.items);
             eventText.setText('match');
             drawTiles.matchItems = event.items;
             delay(10);
-        } else {
+        } else if (event.type == Island) {
             eventText.setText('hit');
+        } else if (event.type == Dead) {
+            eventText.setText('Game Over');
+            gameOver = true;
         }
     }
 

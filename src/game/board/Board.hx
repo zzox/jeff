@@ -27,11 +27,6 @@ typedef CItem = {
     var y:Int;
 }
 
-enum BoardState {
-    Play;
-    Animate;
-}
-
 typedef BlockItem = {
     var item:BlockType;
     var x:Int;
@@ -41,6 +36,7 @@ typedef BlockItem = {
 enum BoardEventType {
     Match;
     Island;
+    Dead;
 }
 
 typedef BoardEvent = {
@@ -54,6 +50,8 @@ class Board {
     public var island:Array<BlockItem> = [];
 
     var onBoardEvent:BoardEvent -> Void;
+
+    var blocksDropped:Int = 0;
 
     public function new (onBoardEvent:BoardEvent -> Void) {
         grid = [for (_ in 0...(boardWidth * boardHeight)) None];
@@ -82,6 +80,7 @@ class Board {
             }
             island.resize(0);
             checkMatches();
+            onBoardEvent({ type: Island });
             return;
         }
 
@@ -91,7 +90,6 @@ class Board {
     }
 
     public function tryMoveLR (moveX:Int) {
-
         final startX = cItem.x;
         final startY = cItem.y;
 
@@ -311,12 +309,13 @@ class Board {
 
         if (matches.length > 0) {
             onBoardEvent({ type: Match, items: matches });
-            makeIslands();
         // } else {
         //     // WARN: this handles the "removal" for now
         //     // this will auto-add the next cItem instead of the scene calling `start`
         //     makeCItem();
         }
+
+        makeIslands();
 
         removeCItem();
     }
@@ -377,12 +376,18 @@ class Board {
     }
 
     function makeCItem () {
-        cItem.x = 2;
+        cItem.x = 2 + blocksDropped % 2;
         cItem.y = 0;
         cItem.tiles = [for (_ in 0...(itemSize * itemSize)) None];
 
         cItem.tiles[0] = basicItems[randomInt(basicItems.length)];
         cItem.tiles[1] = basicItems[randomInt(basicItems.length)];
+
+        if (grid[cItem.x] != None || grid[cItem.x + 1] != None) {
+            onBoardEvent({ type: Dead });
+        }
+
+        blocksDropped++;
     }
 
     function removeCItem () {
