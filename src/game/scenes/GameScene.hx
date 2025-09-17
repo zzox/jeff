@@ -114,7 +114,7 @@ class GameScene extends Scene {
             }
         }
 
-        world.update(delta);
+        world.update(delta, camera);
         super.update(delta);
 
         // TODO: delete this

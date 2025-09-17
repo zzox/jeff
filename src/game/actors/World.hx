@@ -2,6 +2,7 @@ package game.actors;
 
 import core.components.Family;
 import core.components.FrameAnim;
+import core.gameobjects.SImage;
 import core.system.Camera;
 import core.util.Util;
 import game.actors.Actor;
@@ -37,11 +38,17 @@ class World {
     var actors:Array<Actor> = [];
     public var jeff:Actor;
 
+    var bgImage1:SImage;
+    var bgImage2:SImage;
+
     public var aliveTime:Float = 0.0;
 
     public function new () {
         animations = new Anims();
         jeff = makeActor(0, 0, Jeff);
+
+        bgImage1 = new SImage(jeff.x - 100, jeff.y - 64, Assets.images.ground_bg);
+        bgImage2 = new SImage(jeff.x - 100 + 200, jeff.y - 64, Assets.images.ground_bg);
 
         makeActor(120, 0, Diamond);
     }
@@ -65,8 +72,10 @@ class World {
         makeActor(jeff.x - 16 - vel.x, jeff.y - 16 - vel.y, Bat);
     }
 
-    public function update (delta:Float) {
+    public function update (delta:Float, camera:Camera) {
         aliveTime += delta;
+
+        trace(bgImage1.x, jeff.x, camera.scrollX);
 
         final goodGuys = actors.filter(a -> { goodTypes.contains(a.type); }).filter(a -> !a.dead);
         final badGuys = actors.filter(a -> { badTypes.contains(a.type); }).filter(a -> !a.dead);
@@ -166,9 +175,15 @@ class World {
                 a.target = null;
             }
         }
+
+        if (bgImage1.x + 180 <= camera.scrollX) bgImage1.x += 200;
+        if (bgImage2.x + 180 <= camera.scrollX) bgImage2.x += 200;
     }
 
     public function render (g2:Graphics, cam:Camera) {
+        bgImage1.render(g2, cam);
+        bgImage2.render(g2, cam);
+
         g2.pushTranslation(-cam.scrollX, -cam.scrollY);
 
         final image = Assets.images.actors;

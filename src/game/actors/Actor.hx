@@ -103,8 +103,8 @@ class Actor extends Sprite {
                 anim.play('jeff-stand');
                 // anim.play('jeff-hurt');
             } else if (isJeffMoving) {
-                // x += 0.5;
-                x += 0.125;
+                x += 0.5;
+                // x += 0.125;
                 anim.play('jeff-walk');
             } else {
                 anim.play('jeff-stand');
@@ -156,7 +156,7 @@ class Actor extends Sprite {
         if (!hurt) {
             hurtFrames = 60;
             trace('${type} hurt by ${fromActor}', hurtFrames);
-            health -= 50;
+            health -= 5;
         }
     }
 
