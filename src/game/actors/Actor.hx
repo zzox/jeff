@@ -1,6 +1,5 @@
 package game.actors;
 
-import core.Types;
 import core.gameobjects.Sprite;
 import core.util.Util;
 import kha.Assets;
@@ -51,7 +50,9 @@ enum ActorState {
 }
 
 class Actor extends Sprite {
-    var health:Int;
+    static inline final ATTACK_TIME:Int = 30;
+
+    var health:Int = 100;
 
     public var type:ActorType;
 
@@ -74,11 +75,16 @@ class Actor extends Sprite {
     override function update (delta:Float) {
         super.update(delta);
 
-        hurtFrames--;
+        hurtFrames -= 1;
 
         if (type == Jeff) {
-            x += 0.5;
-            anim.play('jeff-walk');
+            if (hurtFrames > 30) {
+                anim.play('jeff-stand');
+                // anim.play('jeff-hurt');
+            } else {
+                x += 0.5;
+                anim.play('jeff-walk');
+            }
         } else if (state == PreAttack) {
             stateFrames--;
             if (stateFrames == 0) {
@@ -87,7 +93,7 @@ class Actor extends Sprite {
                     attackBaseX = x;
                     attackBaseY = y;
                     attackAngle = angleToTarget();
-                    stateFrames = 30;
+                    stateFrames = ATTACK_TIME;
                 } else {
                     state = Other;
                 }
@@ -97,12 +103,15 @@ class Actor extends Sprite {
             if (stateFrames == 0) {
                 state = Other;
             }
-            // final distance = 
-            // // 60 -> 0
-            // // 45 -> 0.5
-            // // 30 -> 1
-            // // 15 -> 0.5
-            // // 0 -> 0
+            final distance = (1 - Math.abs((stateFrames / ATTACK_TIME) - 0.5) * 2) * 24;
+            // 30 -> 0
+            // 22 -> 0.5
+            // 15 -> 1
+            // 7 -> 0.5
+            // 0 -> 0
+            final vel = velocityFromAngle(attackAngle, distance);
+            x = attackBaseX + vel.x;
+            y = attackBaseY + vel.y;
         } else if (target != null) {
             final vel = velocityFromAngle(angleToTarget(), actorData[type].speed);
 
@@ -114,13 +123,21 @@ class Actor extends Sprite {
             }
 
             anim.play(actorData[type].attackAnim);
-            visible = hurtFrames <= 0 || Math.floor(hurtFrames / 3) % 2 == 1;
+        }
+
+        visible = hurtFrames <= 0 || Math.floor(hurtFrames / 5) % 2 == 1;
+    }
+
+    public function getHit (fromActor:ActorType) {
+        if (!hurt) {
+            hurtFrames = 60;
+            trace('${type} hurt by ${fromActor}', hurtFrames);
         }
     }
 
     function attack () {
         state = PreAttack;
-        stateFrames = 30;
+        stateFrames = ATTACK_TIME;
     }
 
     function get_hurt () {

@@ -36,3 +36,21 @@ function angleFromPoints (p1x:Float, p1y:Float, p2x:Float, p2y:Float):Float {
 function distanceBetween (x1:Float, y1:Float, x2:Float, y2:Float) {
     return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 }
+
+// Returns true if two rectangles overlap.
+function rectOverlap (
+    r1px:Float,
+    r1py:Float,
+    r1sx:Float,
+    r1sy:Float,
+    r2px:Float,
+    r2py:Float,
+    r2sx:Float,
+    r2sy:Float
+):Bool {
+    return r1px + r1sx >= r2px
+        && r1px <= r2px + r2sx
+        && r1py + r1sy >= r2py
+        && r1py <= r2py + r2sy;
+}
+
