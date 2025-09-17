@@ -8,6 +8,7 @@ enum ActorType {
     Jeff;
     Diamond;
     Fly;
+    Bat;
 }
 
 typedef ActorData = {
@@ -40,15 +41,25 @@ Jeff => {
     offsetY: 10,
     speed: 60.0,
     shadowSize: 3
+}, Bat => {
+    anim: 'bat',
+    attackAnim: 'bat',
+    bodyX: 8,
+    bodyY: 8,
+    offsetX: 12,
+    offsetY: 11,
+    speed: 60.0,
+    shadowSize: 2
 }
 ];
 
-final goodTypes = [Jeff, Fly];
+final goodTypes = [Jeff, Fly, Bat];
 final badTypes = [Diamond];
 
 enum ActorState {
     PreAttack;
     Attack;
+    Dead;
     Other;
 }
 
@@ -144,6 +155,11 @@ class Actor extends Sprite {
     function attack () {
         state = PreAttack;
         stateFrames = ATTACK_TIME;
+    }
+
+    public function die () {
+        state = Dead;
+        // color = 0xff000000;
     }
 
     public function destroy () {

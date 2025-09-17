@@ -16,8 +16,9 @@ class Anims extends Family<FrameAnim> {
                 final frameAnim = new FrameAnim();
                 frameAnim.add('jeff-stand', [0]);
                 frameAnim.add('jeff-walk', [1, 2, 0, 3, 4, 0], 10);
-                frameAnim.add('diamond', [5, 6], 15);
-                frameAnim.add('diamond-move', [5, 6], 10);
+                frameAnim.add('bat', [5, 6, 7], 15);
+                frameAnim.add('diamond', [8, 9], 15);
+                frameAnim.add('diamond-move', [8, 9], 10);
                 frameAnim.active = false;
                 frameAnim;
             }];
@@ -35,6 +36,8 @@ class World {
     var animations:Anims;
     var actors:Array<Actor> = [];
     public var jeff:Actor;
+
+    public var aliveTime:Float = 0.0;
 
     public function new () {
         animations = new Anims();
@@ -54,9 +57,17 @@ class World {
 
     public function generateTeammate (type:BlockType) {
         trace('to generate: ${type}');
+
+        final angle = aliveTime / 50;
+
+        final vel = velocityFromAngle(angle, 32);
+
+        makeActor(jeff.x - 16 - vel.x, jeff.y - 16 - vel.y, Bat);
     }
 
     public function update (delta:Float) {
+        aliveTime += delta;
+
         final goodGuys = actors.filter(a -> { goodTypes.contains(a.type); });
         final badGuys = actors.filter(a -> { badTypes.contains(a.type); });
 
@@ -151,7 +162,7 @@ class World {
         final image = Assets.images.actors;
         final sizeX = 32;
         final sizeY = 32;
-        final shadowIndex = 13;
+        final shadowIndex = 16;
 
         for (i in 0...actors.length) {
             final tileIndex = shadowIndex - actorData[actors[i].type].shadowSize;
