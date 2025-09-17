@@ -138,6 +138,8 @@ class GameScene extends Scene {
             eventText.setText('match');
             drawTiles.matchItems = event.items;
             delay(10);
+            world.jeff.isJeffMoving = true;
+            world.generateTeammate(event.items[0][0].item);
         } else if (event.type == Island) {
             eventText.setText('hit');
         } else if (event.type == Dead) {

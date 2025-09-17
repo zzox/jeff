@@ -18,6 +18,7 @@ typedef ActorData = {
     var offsetX:Int;
     var offsetY:Int;
     var speed:Float;
+    var shadowSize:Int;
 }
 
 final actorData:Map<ActorType, ActorData> = [
@@ -28,7 +29,8 @@ Jeff => {
     bodyY: 10,
     offsetX: 11,
     offsetY: 10,
-    speed: 60.0
+    speed: 60.0,
+    shadowSize: 4
 }, Diamond => {
     anim: 'diamond',
     attackAnim: 'diamond',
@@ -36,7 +38,8 @@ Jeff => {
     bodyY: 10,
     offsetX: 11,
     offsetY: 10,
-    speed: 60.0
+    speed: 60.0,
+    shadowSize: 3
 }
 ];
 
@@ -52,10 +55,8 @@ enum ActorState {
 class Actor extends Sprite {
     static inline final ATTACK_TIME:Int = 30;
 
-    var health:Int = 100;
-
     public var type:ActorType;
-
+    public var health:Int = 100;
     public var target:Actor;
 
     public var state:ActorState = Other;
@@ -66,6 +67,9 @@ class Actor extends Sprite {
     public var attackAngle:Null<Float>;
     public var attackBaseX:Null<Float>;
     public var attackBaseY:Null<Float>;
+
+    // jeff specific stuff
+    public var isJeffMoving:Bool = false;
 
     public function new (x:Float, y:Float, type:ActorType) {
         super(x, y, Assets.images.actors, 32, 32);
@@ -81,9 +85,11 @@ class Actor extends Sprite {
             if (hurtFrames > 30) {
                 anim.play('jeff-stand');
                 // anim.play('jeff-hurt');
-            } else {
+            } else if (isJeffMoving) {
                 x += 0.5;
                 anim.play('jeff-walk');
+            } else {
+                anim.play('jeff-stand');
             }
         } else if (state == PreAttack) {
             stateFrames--;
@@ -138,6 +144,11 @@ class Actor extends Sprite {
     function attack () {
         state = PreAttack;
         stateFrames = ATTACK_TIME;
+    }
+
+    public function destroy () {
+        stop();
+        anim.active = false;
     }
 
     function get_hurt () {

@@ -5,6 +5,7 @@ import core.components.FrameAnim;
 import core.system.Camera;
 import core.util.Util;
 import game.actors.Actor;
+import game.board.Board.BlockType;
 import kha.Assets;
 import kha.graphics2.Graphics;
 
@@ -14,7 +15,7 @@ class Anims extends Family<FrameAnim> {
             return [for (_ in 0...num) {
                 final frameAnim = new FrameAnim();
                 frameAnim.add('jeff-stand', [0]);
-                frameAnim.add('jeff-walk', [0, 1, 2, 0, 3, 4], 10);
+                frameAnim.add('jeff-walk', [1, 2, 0, 3, 4, 0], 10);
                 frameAnim.add('diamond', [5, 6], 15);
                 frameAnim.add('diamond-move', [5, 6], 10);
                 frameAnim.active = false;
@@ -49,6 +50,10 @@ class World {
         actor.init(anim);
         actors.push(actor);
         return actor;
+    }
+
+    public function generateTeammate (type:BlockType) {
+        trace('to generate: ${type}');
     }
 
     public function update (delta:Float) {
@@ -146,9 +151,10 @@ class World {
         final image = Assets.images.actors;
         final sizeX = 32;
         final sizeY = 32;
+        final shadowIndex = 13;
 
         for (i in 0...actors.length) {
-            final tileIndex = 9;
+            final tileIndex = shadowIndex - actorData[actors[i].type].shadowSize;
             g2.color = 64 * 0x1000000 + 0xffffff;
 
             final cols = Std.int(image.width / 32);
