@@ -47,7 +47,7 @@ class GameScene extends Scene {
 
         new UiText();
 
-        camera.bgColor = 0xff493c2b;
+        camera.bgColor = 0xffff00ff;
 
         board = new Board(handleBoardEvent);
         world = new World();

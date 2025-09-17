@@ -68,8 +68,8 @@ class World {
     public function update (delta:Float) {
         aliveTime += delta;
 
-        final goodGuys = actors.filter(a -> { goodTypes.contains(a.type); });
-        final badGuys = actors.filter(a -> { badTypes.contains(a.type); });
+        final goodGuys = actors.filter(a -> { goodTypes.contains(a.type); }).filter(a -> !a.dead);
+        final badGuys = actors.filter(a -> { badTypes.contains(a.type); }).filter(a -> !a.dead);
 
         // clear dead targets
         // don't update stuff if attacking
@@ -151,12 +151,19 @@ class World {
         }
 
         // if good guys don't have a target, find their point
+
         for (i in 0...actors.length) actors[i].update(delta);
         animations.update(delta);
 
         for (a in actors) {
-            if (a.health <= 0) {
+            if (a.health <= 0 && !a.dead) {
                 a.die();
+            }
+        }
+
+        for (a in actors) {
+            if (a.target?.dead) {
+                a.target = null;
             }
         }
     }

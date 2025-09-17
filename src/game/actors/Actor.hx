@@ -1,8 +1,10 @@
 package game.actors;
 
 import core.gameobjects.Sprite;
+import core.system.Camera;
 import core.util.Util;
 import kha.Assets;
+import kha.graphics2.Graphics;
 
 enum ActorType {
     Jeff;
@@ -73,11 +75,14 @@ class Actor extends Sprite {
     public var state:ActorState = Other;
     public var stateFrames:Int = 0;
     public var hurt(get, never):Bool;
+    public var dead(get, never):Bool;
     public var hurtFrames:Int = 0;
 
     public var attackAngle:Null<Float>;
     public var attackBaseX:Null<Float>;
     public var attackBaseY:Null<Float>;
+
+    public var deadIndex:Null<Int> ;
 
     // jeff specific stuff
     public var isJeffMoving:Bool = false;
@@ -92,7 +97,8 @@ class Actor extends Sprite {
 
         hurtFrames--;
 
-        if (type == Jeff) {
+        if (state == Dead) {
+        } else if (type == Jeff) {
             if (hurtFrames > 30) {
                 anim.play('jeff-stand');
                 // anim.play('jeff-hurt');
@@ -157,11 +163,14 @@ class Actor extends Sprite {
     function attack () {
         state = PreAttack;
         stateFrames = ATTACK_TIME;
+        trace('${type} attacking');
     }
 
     public function die () {
         state = Dead;
         color = 0x000000;
+        deadIndex = tileIndex;
+        trace('${type} dead');
     }
 
     public function destroy () {
@@ -173,11 +182,20 @@ class Actor extends Sprite {
         return hurtFrames > 0;
     }
 
+    function get_dead () {
+        return state == Dead;
+    }
+
     function distanceToTarget ():Float {
         return distanceBetween(target.getMiddleX(), target.getMiddleY(), getMiddleX(), getMiddleY());
     }
 
     function angleToTarget ():Float {
         return angleFromPoints(target.getMiddleX(), target.getMiddleY(), getMiddleX(), getMiddleY());
+    }
+
+    override function render (g2:Graphics, cam:Camera) {
+        if (deadIndex != null) tileIndex = deadIndex;
+        super.render(g2, cam);
     }
 }
