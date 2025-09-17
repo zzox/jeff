@@ -151,9 +151,14 @@ class World {
         }
 
         // if good guys don't have a target, find their point
-
         for (i in 0...actors.length) actors[i].update(delta);
         animations.update(delta);
+
+        for (a in actors) {
+            if (a.health <= 0) {
+                a.die();
+            }
+        }
     }
 
     public function render (g2:Graphics, cam:Camera) {
@@ -167,7 +172,6 @@ class World {
         for (i in 0...actors.length) {
             final tileIndex = shadowIndex - actorData[actors[i].type].shadowSize;
             g2.color = 64 * 0x1000000 + 0xffffff;
-
             final cols = Std.int(image.width / 32);
             g2.drawScaledSubImage(
                 image,

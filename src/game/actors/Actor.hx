@@ -90,14 +90,15 @@ class Actor extends Sprite {
     override function update (delta:Float) {
         super.update(delta);
 
-        hurtFrames -= 1;
+        hurtFrames--;
 
         if (type == Jeff) {
             if (hurtFrames > 30) {
                 anim.play('jeff-stand');
                 // anim.play('jeff-hurt');
             } else if (isJeffMoving) {
-                x += 0.5;
+                // x += 0.5;
+                x += 0.125;
                 anim.play('jeff-walk');
             } else {
                 anim.play('jeff-stand');
@@ -149,6 +150,7 @@ class Actor extends Sprite {
         if (!hurt) {
             hurtFrames = 60;
             trace('${type} hurt by ${fromActor}', hurtFrames);
+            health -= 50;
         }
     }
 
@@ -159,7 +161,7 @@ class Actor extends Sprite {
 
     public function die () {
         state = Dead;
-        // color = 0xff000000;
+        color = 0x000000;
     }
 
     public function destroy () {

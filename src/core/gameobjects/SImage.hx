@@ -22,6 +22,7 @@ class SImage extends GameObject {
         // TODO: move these to inlined pre and post render?
         g2.pushTranslation(-camera.scrollX * scrollFactorX, -camera.scrollY * scrollFactorY);
         g2.pushScale(camera.scale, camera.scale);
+        g2.color = Math.floor(255 * alpha) * 0x1000000 | color;
 
         g2.drawImage(image, x, y);
 

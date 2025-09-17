@@ -19,6 +19,9 @@ class GameObject {
 
     public var components:Array<Component> = [];
 
+    public var color:Int = 0xffffff;
+    public var alpha:Float = 1.0;
+
     public function start () {
         active = true;
         visible = true;

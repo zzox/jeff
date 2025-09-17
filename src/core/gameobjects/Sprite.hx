@@ -44,6 +44,8 @@ class Sprite extends GameObject {
         g2.pushTranslation(-camera.scrollX * scrollFactorX, -camera.scrollY * scrollFactorY);
         g2.pushScale(camera.scale, camera.scale);
 
+        g2.color = Math.floor(255 * alpha) * 0x1000000 | color;
+
         // draw a cutout of the spritesheet based on the tileindex
         final cols = Std.int(image.width / sizeX);
         g2.drawScaledSubImage(
