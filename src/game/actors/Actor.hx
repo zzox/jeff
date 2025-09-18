@@ -24,6 +24,7 @@ typedef ActorData = {
     var offsetY:Int;
     var speed:Float;
     var shadowSize:Int;
+    var ?particleColors:Array<Int>;
 }
 
 final actorData:Map<ActorType, ActorData> = [
@@ -59,7 +60,8 @@ Jeff => {
     offsetX: 12,
     offsetY: 11,
     speed: 50.0,
-    shadowSize: 2
+    shadowSize: 2,
+    particleColors: [0x656d71]
 }
 ];
 
@@ -67,6 +69,7 @@ final goodTypes = [Jeff, Fly, Bat];
 final badTypes = [Diamond];
 
 enum ActorState {
+    Spawn;
     PreAttack;
     Attack;
     Dead;
@@ -107,8 +110,14 @@ class Actor extends Sprite {
         this.type = type;
         health = actorData[type].health;
 
-        state = Other;
-        stateFrames = 0;
+        if (type == Jeff || badTypes.contains(type)) {
+            state = Other;
+            stateFrames = 0;
+        } else {
+            // teammates need to spawn
+            state = Spawn;
+            stateFrames = 120;
+        }
         hurtFrames = 0;
 
         target = null;
@@ -131,7 +140,12 @@ class Actor extends Sprite {
 
         hurtFrames--;
 
-        if (state == Dead) {
+        if (state == Spawn) {
+            stateFrames--;
+            if (stateFrames == 0) {
+                state = Other;
+            }
+        } else if (state == Dead) {
         } else if (type == Jeff) {
             if (hurtFrames > 30) {
                 anim.play('jeff-stand');
@@ -198,15 +212,16 @@ class Actor extends Sprite {
             }
         }
 
-        visible = hurtFrames <= 0 || Math.floor(hurtFrames / 3) % 2 == 1;
+        visible = state != Spawn && (hurtFrames <= 0 || Math.floor(hurtFrames / 3) % 2 == 1);
     }
 
     public function getHit (fromActor:ActorType) {
         final damage = 5;
 
+        // TEMP: can always get hurt
         // if (!hurt) {
             hurtFrames = 30;
-            trace('${type} hurt by ${fromActor}', hurtFrames);
+            trace('${type} hurt by ${fromActor}');
             health -= damage;
 
             damaged = damage;
@@ -215,7 +230,8 @@ class Actor extends Sprite {
 
     function attack () {
         state = PreAttack;
-        stateFrames = ATTACK_TIME;
+        // TEMP: 2x wait than attack time
+        stateFrames = ATTACK_TIME * 2;
         trace('${type} attacking');
     }
 

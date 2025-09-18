@@ -7,6 +7,7 @@ import core.gameobjects.SImage;
 import core.scene.Scene;
 import core.system.Camera;
 import game.actors.Actor;
+import game.actors.SpawnParticle;
 import game.actors.World;
 import game.board.Board;
 import game.ui.UiText;
@@ -42,6 +43,8 @@ class GameScene extends Scene {
 
     var gameOver:Bool = false;
 
+    var spawnParticles:Array<SpawnParticle> = [];
+
     override function create () {
         super.create();
 
@@ -62,6 +65,12 @@ class GameScene extends Scene {
         entities.push(eventText = makeBitmapText(0, 0, ''));
 
         camera.startFollow(world.jeff, 60, 24);
+
+        for (_ in 0...200) {
+            final particle = new SpawnParticle();
+            entities.push(particle);
+            spawnParticles.push(particle);
+        }
     }
 
     override function update (delta:Float) {
@@ -139,13 +148,38 @@ class GameScene extends Scene {
             drawTiles.matchItems = event.items;
             delay(10);
             world.jeff.isJeffMoving = true;
-            world.generateTeammate(event.items[0][0].item);
+
+            for (m in event.items) {
+                final teammate = world.generateTeammate(m[0].item);
+
+                for (i in 0...m.length) {
+                    for (_ in 0...16) {
+                        genParticle(teammate, m[i]);
+                    }
+                }
+            }
         } else if (event.type == Island) {
             eventText.setText('hit');
         } else if (event.type == Dead) {
             eventText.setText('Game Over');
             gameOver = true;
         }
+    }
+
+    var particleIndex = -1;
+    inline function genParticle (teammate:Actor, item:BlockItem) {
+        final p = spawnParticles[(++particleIndex % spawnParticles.length)];
+
+        final tempJeffSpeed = 120 * 0.1;
+
+        // tileSize / 2 = 8
+        p.spawn(
+            item.x * tileSize + spawnX + 8,
+            item.y * tileSize + spawnY + 8,
+            teammate.x + 16 - camera.scrollX - tempJeffSpeed,
+            teammate.y + 16 - camera.scrollY,
+            0xff00ff
+        );
     }
 
     function delay (time:Int) {

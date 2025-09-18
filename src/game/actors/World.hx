@@ -75,13 +75,13 @@ class World {
         return actor;
     }
 
-    public function generateTeammate (type:BlockType) {
+    public function generateTeammate (type:BlockType):Actor {
         trace('to generate: ${type}');
 
         final angle = aliveTime * 50;
         final vel = velocityFromAngle(angle, 32);
 
-        makeActor(jeff.x - vel.x, jeff.y - vel.y, Bat);
+        return makeActor(jeff.x - vel.x, jeff.y - vel.y, Bat);
     }
 
     public function update (delta:Float, camera:Camera) {
@@ -91,8 +91,8 @@ class World {
         if (bgImage2.x + 200 <= camera.scrollX) bgImage2.x += 600;
         if (bgImage3.x + 200 <= camera.scrollX) bgImage3.x += 600;
 
-        final goodGuys = actors.filter(a -> { goodTypes.contains(a.type); }).filter(a -> !a.dead);
-        final badGuys = actors.filter(a -> { badTypes.contains(a.type); }).filter(a -> !a.dead);
+        final goodGuys = actors.filter(a -> { goodTypes.contains(a.type); }).filter(a -> { return !a.dead && a.state != Spawn; });
+        final badGuys = actors.filter(a -> { badTypes.contains(a.type); }).filter(a -> { return !a.dead && a.state != Spawn; });
 
         // clear dead targets
         // don't update stuff if attacking
@@ -238,6 +238,8 @@ class World {
         final shadowIndex = 16;
 
         for (i in 0...actors.length) {
+            if (actors[i].state == Spawn) continue;
+
             final tileIndex = shadowIndex - actorData[actors[i].type].shadowSize;
             g2.color = 64 * 0x1000000 + 0xffffff;
             final cols = Std.int(image.width / 32);
