@@ -25,6 +25,8 @@ class BitmapText extends GameObject {
         g2.pushTranslation(-camera.scrollX * scrollFactorX, -camera.scrollY * scrollFactorY);
         g2.pushScale(camera.scale, camera.scale);
 
+        g2.color = Math.floor(255 * alpha) * 0x1000000 | color;
+
         final lineHeight = font.getFontData().lineHeight;
         var scrollPos:Int = 0;
         var xPos:Int = Math.floor(x);

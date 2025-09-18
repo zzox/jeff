@@ -2,11 +2,13 @@ package game.actors;
 
 import core.components.Family;
 import core.components.FrameAnim;
+import core.gameobjects.BitmapText;
 import core.gameobjects.SImage;
 import core.system.Camera;
 import core.util.Util;
 import game.actors.Actor;
 import game.board.Board.BlockType;
+import game.ui.UiText.makeSmallText;
 import kha.Assets;
 import kha.graphics2.Graphics;
 
@@ -34,25 +36,33 @@ class Anims extends Family<FrameAnim> {
 }
 
 class World {
-    var animations:Anims;
-    var actors:Array<Actor> = [];
-    public var jeff:Actor;
-
     var bgImage1:SImage;
     var bgImage2:SImage;
     var bgImage3:SImage;
 
+    var animations:Anims;
+    var actors:Array<Actor> = [];
+    public var jeff:Actor;
+
+    final damageNumbers:Array<BitmapText> = [];
+
     public var aliveTime:Float = 0.0;
 
     public function new () {
+        bgImage1 = new SImage(-100, -56, Assets.images.ground_bg);
+        bgImage2 = new SImage(-100 + 200, -56, Assets.images.ground_bg);
+        bgImage3 = new SImage(-100 + 400, -56, Assets.images.ground_bg);
+
         animations = new Anims();
         jeff = makeActor(0, 0, Jeff);
 
-        bgImage1 = new SImage(jeff.x - 100, jeff.y - 56, Assets.images.ground_bg);
-        bgImage2 = new SImage(jeff.x - 100 + 200, jeff.y - 56, Assets.images.ground_bg);
-        bgImage3 = new SImage(jeff.x - 100 + 400, jeff.y - 56, Assets.images.ground_bg);
-
         makeActor(120, 0, Diamond);
+
+        for (_ in 0...20) {
+            final damageNumber = makeSmallText(-16, -16, '');
+            damageNumber.color = 0xbe2633;
+            damageNumbers.push(damageNumber);
+        }
     }
 
     function makeActor (x:Float, y:Float, type:ActorType) {
@@ -77,7 +87,9 @@ class World {
     public function update (delta:Float, camera:Camera) {
         aliveTime += delta;
 
-        trace(bgImage1.x, jeff.x, camera.scrollX);
+        if (bgImage1.x + 200 <= camera.scrollX) bgImage1.x += 600;
+        if (bgImage2.x + 200 <= camera.scrollX) bgImage2.x += 600;
+        if (bgImage3.x + 200 <= camera.scrollX) bgImage3.x += 600;
 
         final goodGuys = actors.filter(a -> { goodTypes.contains(a.type); }).filter(a -> !a.dead);
         final badGuys = actors.filter(a -> { badTypes.contains(a.type); }).filter(a -> !a.dead);
@@ -166,6 +178,14 @@ class World {
         for (i in 0...actors.length) actors[i].update(delta);
         animations.update(delta);
 
+        // TODO: combine, use int iterator
+        for (a in actors) {
+            if (a.damaged > 0) {
+                makeDamageNumber(Math.floor(a.x + 16), Math.floor(a.y), a.damaged);
+                a.damaged = 0;
+            }
+        }
+
         for (a in actors) {
             if (a.health <= 0 && !a.dead) {
                 a.die();
@@ -178,9 +198,18 @@ class World {
             }
         }
 
-        if (bgImage1.x + 200 <= camera.scrollX) bgImage1.x += 600;
-        if (bgImage2.x + 200 <= camera.scrollX) bgImage2.x += 600;
-        if (bgImage3.x + 200 <= camera.scrollX) bgImage3.x += 600;
+        for (d in damageNumbers) {
+            d.y -= 0.25;
+        }
+    }
+
+    var damageNumIndex = -1;
+    function makeDamageNumber (x:Int, y:Int, amount:Int) {
+        final num = damageNumbers[(++damageNumIndex % damageNumbers.length)];
+
+        num.setText(amount + '');
+        num.x = Math.floor(x - num.textWidth / 2);
+        num.y = y;
     }
 
     public function render (g2:Graphics, cam:Camera) {
@@ -216,5 +245,7 @@ class World {
 
         g2.color = 0xffffffff;
         for (a in actors) if (a.visible) a.render(g2, cam);
+
+        for (d in damageNumbers) if (d.visible) d.render(g2, cam);
     }
 }

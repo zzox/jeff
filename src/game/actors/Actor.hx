@@ -82,7 +82,8 @@ class Actor extends Sprite {
     public var attackBaseX:Null<Float>;
     public var attackBaseY:Null<Float>;
 
-    public var deadIndex:Null<Int> ;
+    public var deadIndex:Null<Int>;
+    public var damaged:Int = 0;
 
     // jeff specific stuff
     public var isJeffMoving:Bool = false;
@@ -161,10 +162,14 @@ class Actor extends Sprite {
     }
 
     public function getHit (fromActor:ActorType) {
+        final damage = 5;
+
         // if (!hurt) {
             hurtFrames = 30;
             trace('${type} hurt by ${fromActor}', hurtFrames);
-            health -= 5;
+            health -= damage;
+
+            damaged = damage;
         // }
     }
 
