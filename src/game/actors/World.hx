@@ -40,6 +40,7 @@ class World {
 
     var bgImage1:SImage;
     var bgImage2:SImage;
+    var bgImage3:SImage;
 
     public var aliveTime:Float = 0.0;
 
@@ -47,8 +48,9 @@ class World {
         animations = new Anims();
         jeff = makeActor(0, 0, Jeff);
 
-        bgImage1 = new SImage(jeff.x - 100, jeff.y - 64, Assets.images.ground_bg);
-        bgImage2 = new SImage(jeff.x - 100 + 200, jeff.y - 64, Assets.images.ground_bg);
+        bgImage1 = new SImage(jeff.x - 100, jeff.y - 56, Assets.images.ground_bg);
+        bgImage2 = new SImage(jeff.x - 100 + 200, jeff.y - 56, Assets.images.ground_bg);
+        bgImage3 = new SImage(jeff.x - 100 + 400, jeff.y - 56, Assets.images.ground_bg);
 
         makeActor(120, 0, Diamond);
     }
@@ -176,13 +178,15 @@ class World {
             }
         }
 
-        if (bgImage1.x + 180 <= camera.scrollX) bgImage1.x += 200;
-        if (bgImage2.x + 180 <= camera.scrollX) bgImage2.x += 200;
+        if (bgImage1.x + 200 <= camera.scrollX) bgImage1.x += 600;
+        if (bgImage2.x + 200 <= camera.scrollX) bgImage2.x += 600;
+        if (bgImage3.x + 200 <= camera.scrollX) bgImage3.x += 600;
     }
 
     public function render (g2:Graphics, cam:Camera) {
         bgImage1.render(g2, cam);
         bgImage2.render(g2, cam);
+        bgImage3.render(g2, cam);
 
         g2.pushTranslation(-cam.scrollX, -cam.scrollY);
 
