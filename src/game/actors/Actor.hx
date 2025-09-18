@@ -16,6 +16,8 @@ enum ActorType {
 typedef ActorData = {
     var anim:String;
     var attackAnim:String;
+    var health:Int;
+    var damage:Int;
     var bodyX:Int;
     var bodyY:Int;
     var offsetX:Int;
@@ -28,6 +30,8 @@ final actorData:Map<ActorType, ActorData> = [
 Jeff => {
     anim: 'jeff-walk',
     attackAnim: '',
+    health: 100,
+    damage: 0,
     bodyX: 10,
     bodyY: 10,
     offsetX: 11,
@@ -37,20 +41,24 @@ Jeff => {
 }, Diamond => {
     anim: 'diamond',
     attackAnim: 'diamond',
+    health: 30,
+    damage: 6,
     bodyX: 10,
     bodyY: 10,
     offsetX: 11,
     offsetY: 10,
-    speed: 60.0,
+    speed: 45.0,
     shadowSize: 3
 }, Bat => {
     anim: 'bat',
     attackAnim: 'bat',
+    health: 20,
+    damage: 6,
     bodyX: 8,
     bodyY: 8,
     offsetX: 12,
     offsetY: 11,
-    speed: 60.0,
+    speed: 50.0,
     shadowSize: 2
 }
 ];
@@ -69,28 +77,53 @@ class Actor extends Sprite {
     static inline final ATTACK_TIME:Int = 15;
 
     public var type:ActorType;
-    public var health:Int = 100;
+    public var health:Int;
     public var target:Actor;
 
-    public var state:ActorState = Other;
-    public var stateFrames:Int = 0;
+    public var state:ActorState;
+    public var stateFrames:Int;
     public var hurt(get, never):Bool;
     public var dead(get, never):Bool;
-    public var hurtFrames:Int = 0;
+    public var hurtFrames:Int;
 
     public var attackAngle:Null<Float>;
     public var attackBaseX:Null<Float>;
     public var attackBaseY:Null<Float>;
 
+    public var guardX:Null<Float>;
+    public var guardY:Null<Float>;
+
     public var deadIndex:Null<Int>;
-    public var damaged:Int = 0;
+    public var damaged:Int;
 
     // jeff specific stuff
-    public var isJeffMoving:Bool = false;
+    public var isJeffMoving:Bool;
 
-    public function new (x:Float, y:Float, type:ActorType) {
+    public function new (x:Float, y:Float) {
         super(x, y, Assets.images.actors, 32, 32);
+    }
+
+    public function startActor (type:ActorType) {
         this.type = type;
+        health = actorData[type].health;
+
+        state = Other;
+        stateFrames = 0;
+        hurtFrames = 0;
+
+        target = null;
+        attackAngle = null;
+        attackBaseX = null;
+        attackBaseY = null;
+
+        deadIndex = null;
+
+        damaged = 0;
+
+        // jeff specific stuff
+        isJeffMoving = false;
+
+        anim.play(actorData[type].anim);
     }
 
     override function update (delta:Float) {
@@ -104,8 +137,8 @@ class Actor extends Sprite {
                 anim.play('jeff-stand');
                 // anim.play('jeff-hurt');
             } else if (isJeffMoving) {
-                x += 0.5;
-                // x += 0.125;
+                // x += 0.5;
+                x += 0.125;
                 anim.play('jeff-walk');
             } else {
                 anim.play('jeff-stand');
@@ -156,6 +189,13 @@ class Actor extends Sprite {
             }
 
             anim.play(actorData[type].attackAnim);
+        } else if (goodTypes.contains(type)) {
+            if (Math.abs(x - guardX) > 1 || Math.abs(y - guardY) > 1) {
+                final vel = velocityFromAngle(angleToGuard(), actorData[type].speed);
+
+                x += vel.x * delta;
+                y += vel.y * delta;
+            }
         }
 
         visible = hurtFrames <= 0 || Math.floor(hurtFrames / 3) % 2 == 1;
@@ -205,6 +245,10 @@ class Actor extends Sprite {
 
     function angleToTarget ():Float {
         return angleFromPoints(target.getMiddleX(), target.getMiddleY(), getMiddleX(), getMiddleY());
+    }
+
+    function angleToGuard ():Float {
+        return angleFromPoints(guardX, guardY, x, y);
     }
 
     override function render (g2:Graphics, cam:Camera) {

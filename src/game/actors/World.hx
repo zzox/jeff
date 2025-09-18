@@ -66,10 +66,11 @@ class World {
     }
 
     function makeActor (x:Float, y:Float, type:ActorType) {
-        final actor = new Actor(x, y, type);
+        final actor = new Actor(x, y);
         final anim = animations.getNext();
         anim.active = true;
         actor.init(anim);
+        actor.startActor(type);
         actors.push(actor);
         return actor;
     }
@@ -77,11 +78,10 @@ class World {
     public function generateTeammate (type:BlockType) {
         trace('to generate: ${type}');
 
-        final angle = aliveTime / 50;
-
+        final angle = aliveTime * 50;
         final vel = velocityFromAngle(angle, 32);
 
-        makeActor(jeff.x - 16 - vel.x, jeff.y - 16 - vel.y, Bat);
+        makeActor(jeff.x - vel.x, jeff.y - vel.y, Bat);
     }
 
     public function update (delta:Float, camera:Camera) {
@@ -174,6 +174,13 @@ class World {
         // }
 
         // if good guys don't have a target, find their point
+        for (i in 0...goodGuys.length) {
+            // TODO: two rings?
+            final angleDiff = i / (goodGuys.length - 1) * 360;
+            final vel = velocityFromAngle(aliveTime * 50 + angleDiff, 32);
+            goodGuys[i].guardX = jeff.x + vel.x;
+            goodGuys[i].guardY = jeff.y + vel.y;
+        }
 
         for (i in 0...actors.length) actors[i].update(delta);
         animations.update(delta);
@@ -181,7 +188,7 @@ class World {
         // TODO: combine, use int iterator
         for (a in actors) {
             if (a.damaged > 0) {
-                makeDamageNumber(Math.floor(a.x + 16), Math.floor(a.y), a.damaged);
+                makeDamageNumber(Math.floor(a.x + 16), Math.floor(a.y + 16), a.damaged);
                 a.damaged = 0;
             }
         }
@@ -197,6 +204,12 @@ class World {
                 a.target = null;
             }
         }
+
+        final before = actors.length;
+        actors = actors.filter(a -> {
+            return a.x >= camera.scrollX;
+        });
+        if (actors.length != before) trace('lost ${before - actors.length}');
 
         for (d in damageNumbers) {
             d.y -= 0.25;
