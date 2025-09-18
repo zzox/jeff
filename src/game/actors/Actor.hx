@@ -66,7 +66,7 @@ enum ActorState {
 }
 
 class Actor extends Sprite {
-    static inline final ATTACK_TIME:Int = 30;
+    static inline final ATTACK_TIME:Int = 15;
 
     public var type:ActorType;
     public var health:Int = 100;
@@ -126,8 +126,16 @@ class Actor extends Sprite {
             stateFrames--;
             if (stateFrames == 0) {
                 state = Other;
+            } else if (stateFrames == Math.ceil(ATTACK_TIME / 2)) {
+                if (target == null) {
+                    throw 'Null enemy?';
+                }
+
+                target.getHit(type);
             }
-            final distance = (1 - Math.abs((stateFrames / ATTACK_TIME) - 0.5) * 2) * 24;
+
+            final attackDistance = 12; // how far the actor moves
+            final distance = (1 - Math.abs((stateFrames / ATTACK_TIME) - 0.5) * 2) * attackDistance;
             // 30 -> 0
             // 22 -> 0.5
             // 15 -> 1
@@ -149,15 +157,15 @@ class Actor extends Sprite {
             anim.play(actorData[type].attackAnim);
         }
 
-        visible = hurtFrames <= 0 || Math.floor(hurtFrames / 5) % 2 == 1;
+        visible = hurtFrames <= 0 || Math.floor(hurtFrames / 3) % 2 == 1;
     }
 
     public function getHit (fromActor:ActorType) {
-        if (!hurt) {
-            hurtFrames = 60;
+        // if (!hurt) {
+            hurtFrames = 30;
             trace('${type} hurt by ${fromActor}', hurtFrames);
             health -= 5;
-        }
+        // }
     }
 
     function attack () {

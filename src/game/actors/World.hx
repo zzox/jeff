@@ -119,47 +119,47 @@ class World {
             }
         }
 
-        for (g in goodGuys) {
-            if (g.state == Attack) {
-                for (b in badGuys) {
-                    final gData = actorData[g.type];
-                    final bData = actorData[b.type];
-                    if (rectOverlap(
-                        g.x + gData.offsetX,
-                        g.y + gData.offsetY,
-                        gData.bodyX,
-                        gData.bodyY,
-                        b.x + bData.offsetX,
-                        b.y + bData.offsetY,
-                        bData.bodyX,
-                        bData.bodyY,
-                    )) {
-                        b.getHit(g.type);
-                    }
-                }
-            }
-        }
+        // for (g in goodGuys) {
+        //     if (g.state == Attack) {
+        //         for (b in badGuys) {
+        //             final gData = actorData[g.type];
+        //             final bData = actorData[b.type];
+        //             if (rectOverlap(
+        //                 g.x + gData.offsetX,
+        //                 g.y + gData.offsetY,
+        //                 gData.bodyX,
+        //                 gData.bodyY,
+        //                 b.x + bData.offsetX,
+        //                 b.y + bData.offsetY,
+        //                 bData.bodyX,
+        //                 bData.bodyY,
+        //             )) {
+        //                 b.getHit(g.type);
+        //             }
+        //         }
+        //     }
+        // }
 
-        for (b in badGuys) {
-            if (b.state == Attack) {
-                for (g in goodGuys) {
-                    final bData = actorData[b.type];
-                    final gData = actorData[g.type];
-                    if (rectOverlap(
-                        b.x + bData.offsetX,
-                        b.y + bData.offsetY,
-                        bData.bodyX,
-                        bData.bodyY,
-                        g.x + gData.offsetX,
-                        g.y + gData.offsetY,
-                        gData.bodyX,
-                        gData.bodyY
-                    )) {
-                        g.getHit(b.type);
-                    }
-                }
-            }
-        }
+        // for (b in badGuys) {
+        //     if (b.state == Attack) {
+        //         for (g in goodGuys) {
+        //             final bData = actorData[b.type];
+        //             final gData = actorData[g.type];
+        //             if (rectOverlap(
+        //                 b.x + bData.offsetX,
+        //                 b.y + bData.offsetY,
+        //                 bData.bodyX,
+        //                 bData.bodyY,
+        //                 g.x + gData.offsetX,
+        //                 g.y + gData.offsetY,
+        //                 gData.bodyX,
+        //                 gData.bodyY
+        //             )) {
+        //                 g.getHit(b.type);
+        //             }
+        //         }
+        //     }
+        // }
 
         // if good guys don't have a target, find their point
 
