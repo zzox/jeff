@@ -1,5 +1,6 @@
 package game.actors;
 
+import core.Game;
 import core.components.Family;
 import core.components.FrameAnim;
 import core.gameobjects.BitmapText;
@@ -11,6 +12,7 @@ import game.board.Board.BlockType;
 import game.ui.UiText.makeSmallText;
 import kha.Assets;
 import kha.graphics2.Graphics;
+import kha.input.KeyCode;
 
 class Anims extends Family<FrameAnim> {
     public function new () {
@@ -20,8 +22,10 @@ class Anims extends Family<FrameAnim> {
                 frameAnim.add('jeff-stand', [0]);
                 frameAnim.add('jeff-walk', [1, 2, 0, 3, 4, 0], 10);
                 frameAnim.add('bat', [5, 6, 7], 15);
-                frameAnim.add('diamond', [8, 9], 15);
-                frameAnim.add('diamond-move', [8, 9], 10);
+                frameAnim.add('blob', [10, 11, 12], 15);
+                frameAnim.add('fly', [13, 14], 5);
+                frameAnim.add('diamond', [15, 16], 15);
+                frameAnim.add('diamond-move', [15, 16], 10);
                 frameAnim.active = false;
                 frameAnim;
             }];
@@ -87,12 +91,19 @@ class World {
     public function update (delta:Float, camera:Camera) {
         aliveTime += delta;
 
+        if (Math.random() < 0.001) {
+            makeActor(camera.scrollX + camera.width, -60 + Math.random() * 120, Diamond);
+        }
+
         if (bgImage1.x + 200 <= camera.scrollX) bgImage1.x += 600;
         if (bgImage2.x + 200 <= camera.scrollX) bgImage2.x += 600;
         if (bgImage3.x + 200 <= camera.scrollX) bgImage3.x += 600;
 
         final goodGuys = actors.filter(a -> { goodTypes.contains(a.type); }).filter(a -> { return !a.dead && a.state != Spawn; });
         final badGuys = actors.filter(a -> { badTypes.contains(a.type); }).filter(a -> { return !a.dead && a.state != Spawn; });
+
+        // sort so the ring doesn't get out of whack
+        goodGuys.sort((a, b) -> a.liveFrames - b.liveFrames);
 
         // clear dead targets
         // don't update stuff if attacking
@@ -178,6 +189,9 @@ class World {
             // TODO: two rings?
             final angleDiff = i / (goodGuys.length - 1) * 360;
             final vel = velocityFromAngle(aliveTime * 50 + angleDiff, 32);
+
+            if (Game.keys.justPressed(KeyCode.P)) trace(vel);
+
             goodGuys[i].guardX = jeff.x + vel.x;
             goodGuys[i].guardY = jeff.y + vel.y;
         }
@@ -211,6 +225,8 @@ class World {
         });
         if (actors.length != before) trace('lost ${before - actors.length}');
 
+        actors.sort((a, b) -> { return Math.floor(a.y) - Math.floor(b.y); });
+
         for (d in damageNumbers) {
             d.y -= 0.25;
         }
@@ -235,7 +251,7 @@ class World {
         final image = Assets.images.actors;
         final sizeX = 32;
         final sizeY = 32;
-        final shadowIndex = 16;
+        final shadowIndex = 25;
 
         for (i in 0...actors.length) {
             if (actors[i].state == Spawn) continue;

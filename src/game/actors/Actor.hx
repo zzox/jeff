@@ -99,6 +99,8 @@ class Actor extends Sprite {
     public var deadIndex:Null<Int>;
     public var damaged:Int;
 
+    public var liveFrames:Int;
+
     // jeff specific stuff
     public var isJeffMoving:Bool;
 
@@ -128,6 +130,7 @@ class Actor extends Sprite {
         deadIndex = null;
 
         damaged = 0;
+        liveFrames = 0;
 
         // jeff specific stuff
         isJeffMoving = false;
@@ -138,6 +141,7 @@ class Actor extends Sprite {
     override function update (delta:Float) {
         super.update(delta);
 
+        liveFrames++;
         hurtFrames--;
 
         if (state == Spawn) {
@@ -176,10 +180,10 @@ class Actor extends Sprite {
                 state = Other;
             } else if (stateFrames == Math.ceil(ATTACK_TIME / 2)) {
                 if (target == null) {
-                    throw 'Null enemy?';
+                    trace('Null enemy, enemy died');
+                } else {
+                    target.getHit(type);
                 }
-
-                target.getHit(type);
             }
 
             final attackDistance = 12; // how far the actor moves
