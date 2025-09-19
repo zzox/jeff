@@ -1,11 +1,13 @@
 package game.actors;
 
+import core.Game;
 import core.gameobjects.Sprite;
 import core.system.Camera;
 import core.util.Util;
 import game.board.Board;
 import kha.Assets;
 import kha.graphics2.Graphics;
+import kha.input.KeyCode;
 
 enum ActorType {
     Jeff;
@@ -159,6 +161,11 @@ class Actor extends Sprite {
             }
         } else if (state == Dead) {
         } else if (type == Jeff) {
+            // TODO: remove
+            if (Game.keys.justPressed(KeyCode.P)) {
+                @:privateAccess
+                trace(anim.animTime, anim.currentAnim);
+            }
             if (hurtFrames > 30) {
                 anim.play('jeff-stand');
                 // anim.play('jeff-hurt');

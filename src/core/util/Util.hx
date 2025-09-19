@@ -53,4 +53,3 @@ function rectOverlap (
         && r1py + r1sy >= r2py
         && r1py <= r2py + r2sy;
 }
-

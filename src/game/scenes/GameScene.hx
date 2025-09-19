@@ -6,7 +6,7 @@ import core.gameobjects.GameObject;
 import core.gameobjects.SImage;
 import core.scene.Scene;
 import core.system.Camera;
-import core.util.Util.randomInt;
+import core.util.Util;
 import game.actors.Actor;
 import game.actors.SpawnParticle;
 import game.actors.World;
@@ -36,10 +36,12 @@ class GameScene extends Scene {
     var dropTime:Int = 60;
     var animTime:Int = 0;
     var delayTime:Int = 0;
+    var seqMatches:Int = 0;
+    var score:Int = 0;
 
     var decal:BitmapText;
     var drawTiles:DrawTiles;
-    var eventText:BitmapText;
+    var scoreText:BitmapText;
 
     var world:World;
 
@@ -64,7 +66,7 @@ class GameScene extends Scene {
 
         board.start();
 
-        entities.push(eventText = makeBitmapText(0, 0, ''));
+        entities.push(scoreText = makeBitmapText(0, -4, ''));
 
         camera.startFollow(world.jeff, 60, 24);
 
@@ -95,6 +97,7 @@ class GameScene extends Scene {
 
         if (delayTime <= 0 && animTime <= 0) {
             if (board.cItem.tiles.length == 0) {
+                seqMatches = 0;
                 board.start();
             }
 
@@ -128,6 +131,9 @@ class GameScene extends Scene {
         world.update(delta, camera);
         super.update(delta);
 
+        scoreText.setText(score + '');
+        scoreText.x = 316 - scoreText.textWidth;
+
         // TODO: delete this
         if (Game.keys.justPressed(KeyCode.R)) {
             game.changeScene(new GameScene());
@@ -146,7 +152,6 @@ class GameScene extends Scene {
 
     function handleBoardEvent (event:BoardEvent) {
         if (event.type == Match) {
-            eventText.setText('match');
             drawTiles.matchItems = event.items;
             delay(10);
             world.jeff.isJeffMoving = true;
@@ -154,16 +159,20 @@ class GameScene extends Scene {
             for (m in event.items) {
                 final teammate = world.generateTeammate(getActorFromBlockType(m[0].item));
 
+                score += Math.floor((5 + ((m.length - 3) * 5)) * (1 + seqMatches * 0.25));
+
                 for (i in 0...m.length) {
                     for (_ in 0...16) {
                         genParticle(teammate, m[i]);
                     }
                 }
+
+                seqMatches++;
             }
         } else if (event.type == Island) {
-            eventText.setText('hit');
+            // eventText.setText('hit');
         } else if (event.type == Dead) {
-            eventText.setText('Game Over');
+            // eventText.setText('Game Over');
             gameOver = true;
         }
     }

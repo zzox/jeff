@@ -1,6 +1,5 @@
 package game.actors;
 
-import core.Game;
 import core.components.Family;
 import core.components.FrameAnim;
 import core.gameobjects.BitmapText;
@@ -8,8 +7,8 @@ import core.gameobjects.SImage;
 import core.system.Camera;
 import core.util.Util;
 import game.actors.Actor;
-import game.board.Board.BlockType;
 import game.ui.UiText;
+import haxe.ds.ArraySort;
 import kha.Assets;
 import kha.graphics2.Graphics;
 
@@ -102,7 +101,7 @@ class World {
         final badGuys = actors.filter(a -> { badTypes.contains(a.type); }).filter(a -> { return !a.dead && a.state != Spawn; });
 
         // sort so the ring doesn't get out of whack
-        goodGuys.sort((a, b) -> a.liveFrames - b.liveFrames);
+        ArraySort.sort(goodGuys, ((a, b) -> a.liveFrames - b.liveFrames));
 
         // clear dead targets
         // don't update stuff if attacking
@@ -222,7 +221,7 @@ class World {
         });
         if (actors.length != before) trace('lost ${before - actors.length}');
 
-        actors.sort((a, b) -> { return Math.floor(a.y) - Math.floor(b.y); });
+        ArraySort.sort(actors, (a, b) -> { return Math.floor(a.y) - Math.floor(b.y); });
 
         for (d in damageNumbers) {
             d.y -= 0.25;
