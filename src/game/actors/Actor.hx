@@ -140,7 +140,7 @@ class Actor extends Sprite {
     public var guardX:Null<Float>;
     public var guardY:Null<Float>;
 
-    public var deadIndex:Null<Int>;
+    // public var deadIndex:Null<Int>;
     public var damaged:Int;
 
     public var liveFrames:Int;
@@ -172,7 +172,7 @@ class Actor extends Sprite {
         attackBaseX = null;
         attackBaseY = null;
 
-        deadIndex = null;
+        // deadIndex = null;
 
         damaged = 0;
         liveFrames = 0;
@@ -295,8 +295,9 @@ class Actor extends Sprite {
 
     public function die () {
         state = Dead;
-        color = 0x000000;
-        deadIndex = tileIndex;
+        anim.play(actorData[type].dieAnim);
+        // color = 0x000000;
+        // deadIndex = tileIndex;
         trace('${type} dead');
     }
 
@@ -326,7 +327,7 @@ class Actor extends Sprite {
     }
 
     override function render (g2:Graphics, cam:Camera) {
-        if (deadIndex != null) tileIndex = deadIndex;
+        // if (deadIndex != null) tileIndex = deadIndex;
         super.render(g2, cam);
     }
 }
