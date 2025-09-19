@@ -69,7 +69,8 @@ class World {
 
     function makeActor (x:Float, y:Float, type:ActorType) {
         final actor = new Actor(x, y);
-        final anim = animations.getNext();
+        // final anim = animations.getNext();
+        final anim = animations.getOrCreate();
         anim.active = true;
         actor.init(anim);
         actor.startActor(type);

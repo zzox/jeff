@@ -67,6 +67,8 @@ class GameScene extends Scene {
         board.start();
 
         entities.push(scoreText = makeBitmapText(0, -4, ''));
+        entities.push(decal = makeBitmapText(-16, -16, ''));
+        decal.visible = false;
 
         camera.startFollow(world.jeff, 60, 24);
 
@@ -99,6 +101,9 @@ class GameScene extends Scene {
             if (board.cItem.tiles.length == 0) {
                 seqMatches = 0;
                 board.start();
+                timers.addTimer(2.0, () -> {
+                    decal.visible = false;
+                });
             }
 
             if (!gameOver) {
@@ -134,6 +139,13 @@ class GameScene extends Scene {
         scoreText.setText(score + '');
         scoreText.x = 316 - scoreText.textWidth;
 
+        if (decal.visible) {
+            if (seqMatches > 0) {
+                decal.setText(seqMatches + 'x Match' + (seqMatches == 1 ? '' : 'es'));
+            }
+            decal.setPosition((120 - decal.textWidth) / 2, decal.y - 0.25);
+        }
+
         // TODO: delete this
         if (Game.keys.justPressed(KeyCode.R)) {
             game.changeScene(new GameScene());
@@ -168,6 +180,11 @@ class GameScene extends Scene {
                 }
 
                 seqMatches++;
+            }
+
+            if (!decal.visible) {
+                decal.setPosition((120 - decal.textWidth) / 2, 120);
+                decal.visible = true;
             }
         } else if (event.type == Island) {
             // eventText.setText('hit');
