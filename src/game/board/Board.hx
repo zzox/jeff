@@ -277,7 +277,6 @@ class Board {
 
             if (consecutiveItems.length >= 3) {
                 matches.push(makeMatch(consecutiveItems, matchItem));
-                break;
             }
         }
 
@@ -303,7 +302,6 @@ class Board {
 
             if (consecutiveItems.length >= 3) {
                 matches.push(makeMatch(consecutiveItems, matchItem));
-                break;
             }
         }
 
