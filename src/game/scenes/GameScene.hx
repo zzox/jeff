@@ -21,9 +21,9 @@ final spawnY = 8;
 final tileSize = 16;
 
 final indexes:Map<BlockType, Int> = [
-    Weight => 0,
-    Pizza => 1,
-    Outside => 2,
+    Bat => 0,
+    ABlob => 1,
+    Fly => 2,
     Love => 3,
     Bomb => 4,
     None => -1

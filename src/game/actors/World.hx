@@ -20,10 +20,12 @@ class Anims extends Family<FrameAnim> {
                 frameAnim.add('jeff-stand', [0]);
                 frameAnim.add('jeff-walk', [1, 2, 0, 3, 4, 0], 10);
                 frameAnim.add('bat', [5, 6, 7], 15);
+                frameAnim.add('bat-die', [7, 8, 9], 15, false);
                 frameAnim.add('blob', [10, 11, 12], 15);
                 frameAnim.add('fly', [13, 14], 5);
                 frameAnim.add('diamond', [15, 16], 15);
                 frameAnim.add('diamond-move', [15, 16], 10);
+                frameAnim.add('diamond-die', [16, 17, 18], 10, false);
                 frameAnim.active = false;
                 frameAnim;
             }];
@@ -84,7 +86,7 @@ class World {
         final angle = aliveTime * 50;
         final vel = velocityFromAngle(angle, 32);
 
-        return makeActor(jeff.x - vel.x, jeff.y - vel.y, Bat);
+        return makeActor(jeff.x - vel.x, jeff.y - vel.y, type);
     }
 
     public function update (delta:Float, camera:Camera) {

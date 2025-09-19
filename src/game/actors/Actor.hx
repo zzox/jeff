@@ -6,25 +6,28 @@ import core.system.Camera;
 import core.util.Util;
 import game.board.Board;
 import kha.Assets;
+import kha.Color;
 import kha.graphics2.Graphics;
 import kha.input.KeyCode;
 
 enum ActorType {
     Jeff;
     Diamond;
-    Fly;
     Bat;
+    ABlob;
+    Fly;
 }
 
 typedef ActorData = {
     var anim:String;
     var attackAnim:String;
+    var dieAnim:String;
     var health:Int;
     var damage:Int;
-    var bodyX:Int;
-    var bodyY:Int;
-    var offsetX:Int;
-    var offsetY:Int;
+    // var bodyX:Int;
+    // var bodyY:Int;
+    // var offsetX:Int;
+    // var offsetY:Int;
     var speed:Float;
     var shadowSize:Int;
     var ?particleColors:Array<Int>;
@@ -34,41 +37,70 @@ final actorData:Map<ActorType, ActorData> = [
 Jeff => {
     anim: 'jeff-walk',
     attackAnim: '',
+    dieAnim: 'jeff-die',
     health: 100,
     damage: 0,
-    bodyX: 10,
-    bodyY: 10,
-    offsetX: 11,
-    offsetY: 10,
+    // bodyX: 10,
+    // bodyY: 10,
+    // offsetX: 11,
+    // offsetY: 10,
     speed: 60.0,
     shadowSize: 4
 }, Diamond => {
     anim: 'diamond',
     attackAnim: 'diamond',
+    dieAnim: 'diamond-die',
     health: 30,
     damage: 6,
-    bodyX: 10,
-    bodyY: 10,
-    offsetX: 11,
-    offsetY: 10,
+    // bodyX: 10,
+    // bodyY: 10,
+    // offsetX: 11,
+    // offsetY: 10,
     speed: 45.0,
     shadowSize: 3
 }, Bat => {
     anim: 'bat',
     attackAnim: 'bat',
+    dieAnim: 'bat-die',
     health: 20,
     damage: 6,
-    bodyX: 8,
-    bodyY: 8,
-    offsetX: 12,
-    offsetY: 11,
+    // bodyX: 8,
+    // bodyY: 8,
+    // offsetX: 12,
+    // offsetY: 11,
     speed: 50.0,
     shadowSize: 2,
+    particleColors: [0x656d71]
+}, ABlob => {
+    anim: 'blob',
+    attackAnim: 'blob',
+    dieAnim: 'blob',
+    health: 40,
+    damage: 4,
+    // bodyX: 8,
+    // bodyY: 8,
+    // offsetX: 12,
+    // offsetY: 11,
+    speed: 35.0,
+    shadowSize: 5,
+    particleColors: [Color.Green]
+}, Fly => {
+    anim: 'fly',
+    attackAnim: 'fly',
+    dieAnim: 'fly',
+    health: 10,
+    damage: 10,
+    // bodyX: 8,
+    // bodyY: 8,
+    // offsetX: 12,
+    // offsetY: 11,
+    speed: 60,
+    shadowSize: 0,
     particleColors: [0x656d71]
 }
 ];
 
-final goodTypes = [Jeff, Fly, Bat];
+final goodTypes = [Jeff, Fly, ABlob, Bat];
 final badTypes = [Diamond];
 
 enum ActorState {
@@ -80,7 +112,12 @@ enum ActorState {
 }
 
 function getActorFromBlockType (type:BlockType):ActorType {
-    return Bat;
+    return switch (type) {
+        case BlockType.Bat: ActorType.Bat;
+        case BlockType.ABlob: ActorType.ABlob;
+        case BlockType.Fly: ActorType.Fly;
+        default: throw 'Bad block type';
+    }
 }
 
 class Actor extends Sprite {
@@ -145,7 +182,6 @@ class Actor extends Sprite {
 
         // jeff specific stuff
         isJeffMoving = false;
-
     }
 
     override function update (delta:Float) {

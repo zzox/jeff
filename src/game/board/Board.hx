@@ -9,15 +9,15 @@ final boardHeight = 10;
 final itemSize = 2;
 
 enum BlockType {
-    Weight;
-    Pizza;
-    Outside;
+    Bat;
+    ABlob;
+    Fly;
     Love;
     Bomb;
     None;
 }
 
-final basicItems = [Weight, Pizza, Outside];
+final basicItems = [Bat, ABlob, Fly];
 
 typedef Grid = Array<BlockType>;
 
