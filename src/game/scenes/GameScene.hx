@@ -6,6 +6,7 @@ import core.gameobjects.GameObject;
 import core.gameobjects.SImage;
 import core.scene.Scene;
 import core.system.Camera;
+import core.util.Util.randomInt;
 import game.actors.Actor;
 import game.actors.SpawnParticle;
 import game.actors.World;
@@ -36,6 +37,7 @@ class GameScene extends Scene {
     var animTime:Int = 0;
     var delayTime:Int = 0;
 
+    var decal:BitmapText;
     var drawTiles:DrawTiles;
     var eventText:BitmapText;
 
@@ -150,7 +152,7 @@ class GameScene extends Scene {
             world.jeff.isJeffMoving = true;
 
             for (m in event.items) {
-                final teammate = world.generateTeammate(m[0].item);
+                final teammate = world.generateTeammate(getActorFromBlockType(m[0].item));
 
                 for (i in 0...m.length) {
                     for (_ in 0...16) {
@@ -178,7 +180,7 @@ class GameScene extends Scene {
             item.y * tileSize + spawnY + 8,
             teammate.x + 16 - camera.scrollX - tempJeffSpeed,
             teammate.y + 16 - camera.scrollY,
-            0xff00ff
+            actorData[teammate.type].particleColors[randomInt(actorData[teammate.type].particleColors.length)]
         );
     }
 

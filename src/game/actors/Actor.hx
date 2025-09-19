@@ -3,6 +3,7 @@ package game.actors;
 import core.gameobjects.Sprite;
 import core.system.Camera;
 import core.util.Util;
+import game.board.Board;
 import kha.Assets;
 import kha.graphics2.Graphics;
 
@@ -76,6 +77,10 @@ enum ActorState {
     Other;
 }
 
+function getActorFromBlockType (type:BlockType):ActorType {
+    return Bat;
+}
+
 class Actor extends Sprite {
     static inline final ATTACK_TIME:Int = 15;
 
@@ -100,6 +105,7 @@ class Actor extends Sprite {
     public var damaged:Int;
 
     public var liveFrames:Int;
+    var lastX:Float;
 
     // jeff specific stuff
     public var isJeffMoving:Bool;
@@ -131,11 +137,13 @@ class Actor extends Sprite {
 
         damaged = 0;
         liveFrames = 0;
+        lastX = x;
+
+        anim.play(actorData[type].anim);
 
         // jeff specific stuff
         isJeffMoving = false;
 
-        anim.play(actorData[type].anim);
     }
 
     override function update (delta:Float) {
@@ -216,6 +224,9 @@ class Actor extends Sprite {
             }
         }
 
+        flipX = x < lastX;
+
+        lastX = x;
         visible = state != Spawn && (hurtFrames <= 0 || Math.floor(hurtFrames / 3) % 2 == 1);
     }
 

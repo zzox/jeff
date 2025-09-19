@@ -9,10 +9,9 @@ import core.system.Camera;
 import core.util.Util;
 import game.actors.Actor;
 import game.board.Board.BlockType;
-import game.ui.UiText.makeSmallText;
+import game.ui.UiText;
 import kha.Assets;
 import kha.graphics2.Graphics;
-import kha.input.KeyCode;
 
 class Anims extends Family<FrameAnim> {
     public function new () {
@@ -79,7 +78,7 @@ class World {
         return actor;
     }
 
-    public function generateTeammate (type:BlockType):Actor {
+    public function generateTeammate (type:ActorType):Actor {
         trace('to generate: ${type}');
 
         final angle = aliveTime * 50;
@@ -189,8 +188,6 @@ class World {
             // TODO: two rings?
             final angleDiff = i / (goodGuys.length - 1) * 360;
             final vel = velocityFromAngle(aliveTime * 50 + angleDiff, 32);
-
-            if (Game.keys.justPressed(KeyCode.P)) trace(vel);
 
             goodGuys[i].guardX = jeff.x + vel.x;
             goodGuys[i].guardY = jeff.y + vel.y;
